@@ -1,28 +1,24 @@
 const card = document.getElementById("card");
 
 
-function randomNumbers(min,max,total){
+function randomNumbers(min, max, total){
 
-let numbers=[];
+    let numbers = [];
 
+    while(numbers.length < total){
 
-while(numbers.length < total){
-
-let num = Math.floor(
-Math.random()*(max-min+1)
-)+min;
-
-
-if(!numbers.includes(num)){
-
-numbers.push(num);
-
-}
-
-}
+        let num = Math.floor(
+            Math.random() * (max - min + 1)
+        ) + min;
 
 
-return numbers;
+        if(!numbers.includes(num)){
+            numbers.push(num);
+        }
+
+    }
+
+    return numbers;
 
 }
 
@@ -30,74 +26,68 @@ return numbers;
 
 function createCard(){
 
-
-if(!card) return;
-
-
-card.innerHTML="";
+    if(!card){
+        return;
+    }
 
 
-let columns=[
+    card.innerHTML = "";
 
-randomNumbers(1,15,5),
 
-randomNumbers(16,30,5),
+    let columns = [
 
-randomNumbers(31,45,5),
+        randomNumbers(1,15,5),
+        randomNumbers(16,30,5),
+        randomNumbers(31,45,5),
+        randomNumbers(46,60,5),
+        randomNumbers(61,75,5)
 
-randomNumbers(46,60,5),
-
-randomNumbers(61,75,5)
-
-];
+    ];
 
 
 
-for(let row=0; row<5; row++){
-
-for(let col=0; col<5; col++){
+    for(let row = 0; row < 5; row++){
 
 
-let square=document.createElement("div");
-
-square.classList.add("number");
+        for(let col = 0; col < 5; col++){
 
 
+            let square = document.createElement("div");
 
-if(row===2 && col===2){
-
-square.innerHTML="FREE";
-
-square.classList.add("free");
-
-}
+            square.classList.add("number");
 
 
-else{
+
+            if(row === 2 && col === 2){
+
+                square.innerHTML = "FREE";
+
+                square.classList.add("free");
+
+            }
+
+            else{
 
 
-square.innerHTML=
-columns[col][row];
+                square.innerHTML = columns[col][row];
 
 
-square.onclick=function(){
+                square.onclick = function(){
 
-square.classList.toggle("selected");
+                    square.classList.toggle("selected");
 
-}
-
-
-}
+                };
 
 
-card.appendChild(square);
+            }
 
 
-}
+            card.appendChild(square);
 
 
-}
+        }
 
+    }
 
 }
 
