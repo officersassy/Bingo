@@ -2,118 +2,103 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
+    font-family:"Segoe UI", Arial, sans-serif;
 }
+
 
 body {
+
     min-height:100vh;
+
     display:flex;
+
     justify-content:center;
+
     align-items:center;
+
     color:white;
+
     background:#06152e;
+
+    overflow-x:hidden;
+
 }
 
 
-/* Animated blue background */
+/* Background effect */
 
 .background {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
+
+    position:fixed;
+
+    inset:0;
 
     background:
-        radial-gradient(circle at 20% 20%, rgba(0, 140, 255, 0.8), transparent 35%),
-        radial-gradient(circle at 80% 70%, rgba(0, 70, 255, 0.7), transparent 40%),
-        linear-gradient(135deg, #020617, #0f172a);
+    radial-gradient(circle at 20% 20%, rgba(0,140,255,.7), transparent 35%),
+    radial-gradient(circle at 80% 80%, rgba(0,80,255,.7), transparent 35%),
+    linear-gradient(135deg,#020617,#06152e);
 
-    animation: blueMove 12s infinite alternate;
+    z-index:-1;
+
+    animation:bgMove 12s infinite alternate;
+
 }
 
 
-@keyframes blueMove {
+@keyframes bgMove {
 
     from {
-        transform: scale(1);
+        transform:scale(1);
     }
 
     to {
-        transform: scale(1.15);
+        transform:scale(1.15);
     }
 
 }
 
 
-/* Main glass panel */
+
+/* Main box */
 
 .container {
 
-    width: 90%;
-    max-width: 750px;
+    width:90%;
 
-    padding: 50px;
+    max-width:800px;
 
-    text-align: center;
+    padding:45px;
 
-    background:
-        rgba(255,255,255,0.08);
+    text-align:center;
 
-    border:
-        1px solid rgba(255,255,255,0.2);
+    background:rgba(255,255,255,.1);
 
-    border-radius: 30px;
+    border:1px solid rgba(255,255,255,.2);
 
-    backdrop-filter: blur(18px);
+    border-radius:25px;
+
+    backdrop-filter:blur(15px);
 
     box-shadow:
-        0 0 40px rgba(0,140,255,0.5);
-
-    animation: fadeIn 1s ease;
+    0 0 40px rgba(0,140,255,.5);
 
 }
 
 
-@keyframes fadeIn {
-
-    from {
-        opacity:0;
-        transform:translateY(30px);
-    }
-
-    to {
-        opacity:1;
-        transform:translateY(0);
-    }
-
-}
-
-
-/* Title */
 
 h1 {
 
-    font-size:55px;
+    font-size:50px;
 
     margin-bottom:20px;
 
-    background:
-        linear-gradient(
-            90deg,
-            #38bdf8,
-            #ffffff,
-            #2563eb
-        );
-
-    -webkit-background-clip:text;
-
-    color:transparent;
+    color:white;
 
     text-shadow:
-        0 0 25px rgba(56,189,248,.7);
+    0 0 20px #38bdf8;
 
 }
 
-
-/* Text */
 
 p {
 
@@ -121,7 +106,7 @@ p {
 
     color:#dbeafe;
 
-    margin-bottom:35px;
+    margin-bottom:30px;
 
 }
 
@@ -130,31 +115,22 @@ p {
 
 button {
 
-    padding:18px 50px;
+    padding:16px 40px;
 
     margin:15px;
 
     border:none;
 
-    border-radius:15px;
+    border-radius:12px;
 
-    font-size:22px;
+    background:
+    linear-gradient(135deg,#2563eb,#06b6d4);
 
     color:white;
 
+    font-size:20px;
+
     cursor:pointer;
-
-
-    background:
-        linear-gradient(
-            135deg,
-            #2563eb,
-            #0ea5e9
-        );
-
-
-    box-shadow:
-        0 0 20px rgba(14,165,233,.7);
 
     transition:.3s;
 
@@ -163,41 +139,41 @@ button {
 
 button:hover {
 
-    transform:
-        translateY(-5px)
-        scale(1.05);
-
+    transform:scale(1.08);
 
     box-shadow:
-        0 0 40px rgba(14,165,233,1);
+    0 0 25px #38bdf8;
 
 }
 
-
-/* Links */
 
 a {
+
     text-decoration:none;
+
 }
 
 
-/* Bingo Board */
+
+/* Bingo area */
 
 .bingo {
 
     display:grid;
 
-    grid-template-columns:
-    repeat(5,70px);
+    grid-template-columns:repeat(5,70px);
 
     gap:10px;
 
     justify-content:center;
 
-    margin-top:30px;
+    margin-top:25px;
 
 }
 
+
+
+/* Letters */
 
 .header {
 
@@ -209,27 +185,39 @@ a {
 
     justify-content:center;
 
+    background:
+    linear-gradient(135deg,#0284c7,#2563eb);
+
+    border-radius:12px;
+
     font-size:30px;
 
     font-weight:bold;
 
-    border-radius:12px;
-
-
-    background:
-        linear-gradient(
-            135deg,
-            #0284c7,
-            #2563eb
-        );
-
-
     box-shadow:
-        0 0 20px rgba(37,99,235,.8);
+    0 0 20px #0284c7;
 
 }
 
 
+
+/* Numbers container */
+
+.card {
+
+    display:grid;
+
+    grid-template-columns:repeat(5,70px);
+
+    gap:10px;
+
+    grid-column:1 / span 5;
+
+}
+
+
+
+/* Bingo numbers */
 
 .number {
 
@@ -237,15 +225,13 @@ a {
 
     display:flex;
 
-    justify-content:center;
-
     align-items:center;
 
+    justify-content:center;
 
     background:white;
 
-    color:#020617;
-
+    color:#111827;
 
     border-radius:12px;
 
@@ -263,11 +249,10 @@ a {
 
 .number:hover {
 
-    transform:
-        scale(1.1);
+    transform:scale(1.1);
 
     box-shadow:
-        0 0 20px #38bdf8;
+    0 0 20px #38bdf8;
 
 }
 
@@ -276,37 +261,24 @@ a {
 .number.selected {
 
     background:
-        linear-gradient(
-            135deg,
-            #2563eb,
-            #06b6d4
-        );
+    linear-gradient(135deg,#2563eb,#06b6d4);
 
     color:white;
 
     box-shadow:
-        0 0 25px #38bdf8;
+    0 0 25px #38bdf8;
 
 }
 
+
+
+/* Free space */
 
 .free {
 
     background:
-        linear-gradient(
-            135deg,
-            #38bdf8,
-            #2563eb
-        );
+    linear-gradient(135deg,#0284c7,#2563eb);
 
     color:white;
-
-    .background {
-    position:fixed;
-    inset:0;
-    background:
-    linear-gradient(135deg, #001f3f, #0074D9);
-    z-index:-1;
-}
 
 }
