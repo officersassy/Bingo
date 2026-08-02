@@ -8,11 +8,14 @@ import {
     getDatabase,
     ref,
     set,
+    update,
     onValue,
-    update
+    push
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 
+
+// YOUR FIREBASE CONFIG
 
 const firebaseConfig = {
   apiKey: "AIzaSyDme5iZZNPN0O128vw0MP9aGjLZXD3oKy8",
@@ -31,194 +34,18 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
 
+
 const gameRef = ref(database,"bingo/game");
 
+const callsRef = ref(database,"bingo/game/calledNumbers");
 
 
 
 
-// ==========================
-// VARIABLES
-// ==========================
-
-
-let myCard=[];
-
-let playerName="";
 
 let gameLocked=false;
 
-
-
-
-
-
-
-// ==========================
-// CREATE CARD
-// ==========================
-
-
-const card=document.getElementById("card");
-
-
-
-function randomNumbers(min,max,total){
-
-let nums=[];
-
-
-while(nums.length<total){
-
-let n=Math.floor(Math.random()*(max-min+1))+min;
-
-
-if(!nums.includes(n)){
-
-nums.push(n);
-
-}
-
-}
-
-
-return nums;
-
-}
-
-
-
-
-
-window.createCard=function(){
-
-
-if(!card)return;
-
-
-card.innerHTML="";
-
-
-myCard=[];
-
-
-
-let columns=[
-
-randomNumbers(1,15,5),
-randomNumbers(16,30,5),
-randomNumbers(31,45,5),
-randomNumbers(46,60,5),
-randomNumbers(61,75,5)
-
-];
-
-
-
-
-
-for(let r=0;r<5;r++){
-
-
-let row=[];
-
-
-for(let c=0;c<5;c++){
-
-
-let box=document.createElement("div");
-
-box.className="number";
-
-
-
-if(r===2 && c===2){
-
-box.innerHTML="FREE";
-
-box.classList.add("free");
-
-row.push("FREE");
-
-
-}
-
-else{
-
-
-let value=columns[c][r];
-
-
-box.innerHTML=value;
-
-
-row.push(value);
-
-
-
-box.onclick=function(){
-
-box.classList.toggle("selected");
-
-};
-
-
-}
-
-
-
-card.appendChild(box);
-
-
-}
-
-
-
-myCard.push(row);
-
-
-}
-
-
-
-}
-
-
-
-createCard();
-
-
-
-
-
-
-
-// ==========================
-// PLAYER NAME
-// ==========================
-
-
-window.saveName=function(){
-
-
-let input=document.getElementById("playerName");
-
-
-if(!input.value){
-
-alert("Enter your name");
-
-return;
-
-}
-
-
-playerName=input.value;
-
-
-};
-
-
+let calledNumbers=[];
 
 
 
@@ -234,35 +61,66 @@ playerName=input.value;
 window.callNumber=function(){
 
 
-if(gameLocked)return;
+    if(gameLocked){
+
+        return;
+
+    }
 
 
 
-let number=Math.floor(Math.random()*75)+1;
+    let number;
 
 
+    do {
 
-let letter;
-
-
-if(number<=15)letter="B";
-else if(number<=30)letter="I";
-else if(number<=45)letter="N";
-else if(number<=60)letter="G";
-else letter="O";
+        number =
+        Math.floor(Math.random()*75)+1;
 
 
-
-let call=letter+" "+number;
+    } while(calledNumbers.includes(number));
 
 
 
 
-update(gameRef,{
+    calledNumbers.push(number);
 
-currentCall:call
 
-});
+
+
+    let letter;
+
+
+    if(number<=15) letter="B";
+    else if(number<=30) letter="I";
+    else if(number<=45) letter="N";
+    else if(number<=60) letter="G";
+    else letter="O";
+
+
+
+    let call =
+    letter+" "+number;
+
+
+
+
+    // save current call
+
+    update(gameRef,{
+
+        currentCall:call
+
+    });
+
+
+
+
+
+    // save history
+
+    push(callsRef,call);
+
 
 
 };
@@ -275,190 +133,64 @@ currentCall:call
 
 
 // ==========================
-// BINGO CHECK
+// FIREBASE LIVE UPDATE
 // ==========================
 
 
-window.claimBingo=function(){
+onValue(gameRef,(snapshot)=>{
 
 
-if(gameLocked)return;
+    let data=snapshot.val();
 
 
 
-let selected=[];
+    if(!data)return;
 
 
-document.querySelectorAll(".selected")
-.forEach(x=>{
 
-selected.push(Number(x.innerHTML));
 
-});
+    if(data.currentCall){
 
 
 
-let win=false;
+        let host =
+        document.getElementById("currentNumber");
 
 
+        if(host){
 
-// rows
+            host.innerHTML =
+            data.currentCall;
 
-for(let r=0;r<5;r++){
+        }
 
 
-let good=true;
 
 
-for(let c=0;c<5;c++){
 
+        let player =
+        document.getElementById("playerCurrent");
 
-let n=myCard[r][c];
 
+        if(player){
 
-if(n!="FREE" && !selected.includes(Number(n))){
+            player.innerHTML =
+            data.currentCall;
 
-good=false;
+        }
 
-}
 
+    }
 
-}
 
 
-if(good)win=true;
 
 
-}
+    if(data.locked){
 
+        gameLocked=true;
 
-
-
-
-
-// columns
-
-for(let c=0;c<5;c++){
-
-
-let good=true;
-
-
-for(let r=0;r<5;r++){
-
-
-let n=myCard[r][c];
-
-
-if(n!="FREE" && !selected.includes(Number(n))){
-
-good=false;
-
-}
-
-
-}
-
-
-
-if(good)win=true;
-
-
-}
-
-
-
-
-
-
-if(!win){
-
-alert("Not a valid Bingo!");
-
-return;
-
-}
-
-
-
-
-update(gameRef,{
-
-winner:playerName || "Unknown Player",
-
-locked:true
-
-});
-
-
-};
-
-
-
-
-
-
-
-
-// ==========================
-// FIREBASE LISTENER
-// ==========================
-
-
-onValue(gameRef,(snap)=>{
-
-
-let data=snap.val();
-
-
-if(!data)return;
-
-
-
-if(data.currentCall){
-
-
-let p=document.getElementById("playerCurrent");
-
-if(p)p.innerHTML=data.currentCall;
-
-
-
-let h=document.getElementById("currentNumber");
-
-if(h)h.innerHTML=data.currentCall;
-
-
-}
-
-
-
-if(data.locked){
-
-
-gameLocked=true;
-
-
-document.querySelectorAll(".winner-popup")
-.forEach(x=>{
-
-
-x.style.display="block";
-
-
-x.innerHTML=
-
-"🎉 BINGO WINNER 🎉<br><br>"
-+
-data.winner
-+
-" has won!";
-
-
-});
-
-
-}
+    }
 
 
 
@@ -473,25 +205,145 @@ data.winner
 
 
 // ==========================
-// RESET
+// SHOW CALLED NUMBERS
+// ==========================
+
+
+onValue(callsRef,(snapshot)=>{
+
+
+    let calls =
+    snapshot.val();
+
+
+
+    let history =
+    document.getElementById("calledNumbers");
+
+
+    let last =
+    document.getElementById("lastCalls");
+
+
+
+
+    if(!history && !last){
+
+        return;
+
+    }
+
+
+
+    if(history){
+
+        history.innerHTML="";
+
+    }
+
+
+
+    if(last){
+
+        last.innerHTML="";
+
+    }
+
+
+
+
+
+    if(calls){
+
+
+
+        let list =
+        Object.values(calls).reverse();
+
+
+
+        list.forEach((call,index)=>{
+
+
+
+            let box =
+            document.createElement("div");
+
+
+            box.className="called";
+
+
+            box.innerHTML=call;
+
+
+
+
+            if(history){
+
+                history.appendChild(
+                    box.cloneNode(true)
+                );
+
+            }
+
+
+
+
+            if(last && index < 5){
+
+
+                last.appendChild(
+                    box.cloneNode(true)
+                );
+
+
+            }
+
+
+
+        });
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+
+
+
+
+// ==========================
+// RESET GAME
 // ==========================
 
 
 window.resetGame=function(){
 
 
-gameLocked=false;
+    set(gameRef,{
+
+        currentCall:"--",
+
+        winner:null,
+
+        locked:false,
+
+        calledNumbers:null
+
+    });
 
 
-set(gameRef,{
 
-currentCall:"--",
+    gameLocked=false;
 
-winner:null,
-
-locked:false
-
-});
+    calledNumbers=[];
 
 
 };
