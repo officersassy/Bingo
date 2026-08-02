@@ -541,3 +541,10 @@ font-size:16px;
     box-shadow:0 0 20px #008cff;
 
 }
+.called {
+
+    background: yellow !important;
+
+    color: black;
+
+}
