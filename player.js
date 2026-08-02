@@ -12,6 +12,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 
+
 // KEEP YOUR FIREBASE CONFIG
 
 const firebaseConfig = {
@@ -25,6 +26,7 @@ const firebaseConfig = {
 };
 
 
+
 const app = initializeApp(firebaseConfig);
 
 const database = getDatabase(app);
@@ -32,7 +34,6 @@ const database = getDatabase(app);
 
 
 
-// DATABASE
 
 const currentRef =
 ref(database,"bingo/currentCall");
@@ -49,11 +50,17 @@ ref(database,"bingo/winner");
 
 
 
-let playerName="";
 
-let myCard=[];
+let playerName =
+localStorage.getItem("bingoName") || "";
+
+
+let myCard =
+JSON.parse(localStorage.getItem("bingoCard")) || null;
+
 
 let calledNumbers=[];
+
 
 
 
@@ -68,37 +75,55 @@ document.getElementById("card");
 
 
 
+
+
 // ==========================
-// CREATE CARD
+// RANDOM NUMBERS
 // ==========================
 
 
 function randomNumbers(min,max,total){
+
 
     let numbers=[];
 
 
     while(numbers.length < total){
 
+
         let number =
         Math.floor(Math.random()*(max-min+1))+min;
 
 
+
         if(!numbers.includes(number)){
+
 
             numbers.push(number);
 
+
         }
+
 
     }
 
 
     return numbers;
 
+
 }
 
 
 
+
+
+
+
+
+
+// ==========================
+// CREATE / LOAD CARD
+// ==========================
 
 
 window.createCard=function(){
@@ -108,36 +133,89 @@ window.createCard=function(){
     return;
 
 
+
     card.innerHTML="";
 
-    myCard=[];
+
+
+    if(!myCard){
+
+
+        let columns=[
+
+
+            randomNumbers(1,15,5),
+
+            randomNumbers(16,30,5),
+
+            randomNumbers(31,45,5),
+
+            randomNumbers(46,60,5),
+
+            randomNumbers(61,75,5)
+
+        ];
 
 
 
-    let columns=[
-
-        randomNumbers(1,15,5),
-
-        randomNumbers(16,30,5),
-
-        randomNumbers(31,45,5),
-
-        randomNumbers(46,60,5),
-
-        randomNumbers(61,75,5)
-
-    ];
+        myCard=[];
 
 
 
-
-    for(let row=0;row<5;row++){
-
-
-        let newRow=[];
+        for(let row=0;row<5;row++){
 
 
-        for(let col=0;col<5;col++){
+            let line=[];
+
+
+            for(let col=0;col<5;col++){
+
+
+
+                if(row===2 && col===2){
+
+                    line.push("FREE");
+
+
+                }
+                else{
+
+
+                    line.push(
+                        columns[col][row]
+                    );
+
+
+                }
+
+
+            }
+
+
+            myCard.push(line);
+
+
+        }
+
+
+
+        localStorage.setItem(
+            "bingoCard",
+            JSON.stringify(myCard)
+        );
+
+
+    }
+
+
+
+
+
+
+    myCard.forEach((row)=>{
+
+
+        row.forEach((number)=>{
 
 
             let square =
@@ -148,28 +226,20 @@ window.createCard=function(){
 
 
 
-            if(row===2 && col===2){
+            square.innerHTML=number;
 
 
-                square.innerHTML="FREE";
+
+
+
+            if(number==="FREE"){
+
 
                 square.classList.add("free");
 
-                newRow.push("FREE");
 
-
-            } else {
-
-
-                let number =
-                columns[col][row];
-
-
-                square.innerHTML=number;
-
-
-                newRow.push(number);
-
+            }
+            else{
 
 
                 square.onclick=function(){
@@ -188,14 +258,16 @@ window.createCard=function(){
             card.appendChild(square);
 
 
-        }
+
+        });
 
 
-        myCard.push(newRow);
+    });
 
 
-    }
 
+
+    updateCalledHighlights();
 
 
 };
@@ -222,6 +294,7 @@ createCard();
 window.saveName=function(){
 
 
+
     let input =
     document.getElementById("playerName");
 
@@ -236,7 +309,16 @@ window.saveName=function(){
     }
 
 
+
     playerName=input.value;
+
+
+
+    localStorage.setItem(
+        "bingoName",
+        playerName
+    );
+
 
 
     alert(
@@ -251,11 +333,28 @@ window.saveName=function(){
 
 
 
+// Load saved name
+
+let nameBox =
+document.getElementById("playerName");
+
+
+if(nameBox && playerName){
+
+    nameBox.value=playerName;
+
+}
+
+
+
+
+
+
 
 
 
 // ==========================
-// CURRENT NUMBER
+// CURRENT CALL
 // ==========================
 
 
@@ -283,7 +382,6 @@ onValue(currentRef,(snapshot)=>{
     }
 
 
-
 });
 
 
@@ -295,7 +393,7 @@ onValue(currentRef,(snapshot)=>{
 
 
 // ==========================
-// GET ALL CALLED NUMBERS
+// CALLED NUMBERS
 // ==========================
 
 
@@ -316,8 +414,8 @@ onValue(callsRef,(snapshot)=>{
         Object.values(data);
 
 
-
     }
+
 
 
     updateCalledHighlights();
@@ -342,6 +440,7 @@ onValue(callsRef,(snapshot)=>{
 function updateCalledHighlights(){
 
 
+
     document.querySelectorAll(".number")
     .forEach(square=>{
 
@@ -349,13 +448,25 @@ function updateCalledHighlights(){
         square.classList.remove("called");
 
 
+
         let value =
-        square.innerHTML;
+        Number(square.innerHTML);
 
 
 
-        if(calledNumbers.includes(
-            getLetter(value)+" "+value
+        if(!value)
+        return;
+
+
+
+        let letter =
+        getLetter(value);
+
+
+
+        if(
+        calledNumbers.includes(
+            letter+" "+value
         )){
 
 
@@ -365,7 +476,9 @@ function updateCalledHighlights(){
         }
 
 
+
     });
+
 
 
 }
@@ -375,10 +488,9 @@ function updateCalledHighlights(){
 
 
 
+
+
 function getLetter(number){
-
-
-    number=Number(number);
 
 
     if(number<=15)
@@ -399,7 +511,6 @@ function getLetter(number){
 
     return "O";
 
-
 }
 
 
@@ -411,7 +522,7 @@ function getLetter(number){
 
 
 // ==========================
-// CLAIM BINGO
+// BINGO CLAIM
 // ==========================
 
 
@@ -436,6 +547,8 @@ window.claimBingo=function(){
 
 
     let win=false;
+
+
 
 
 
@@ -467,6 +580,7 @@ window.claimBingo=function(){
 
 
     }
+
 
 
 
@@ -508,9 +622,12 @@ window.claimBingo=function(){
 
     if(!win){
 
+
         alert("❌ Not a valid Bingo");
 
+
         return;
+
 
     }
 
@@ -525,6 +642,7 @@ window.claimBingo=function(){
         time:Date.now()
 
     });
+
 
 
 };
@@ -548,8 +666,10 @@ onValue(winnerRef,(snapshot)=>{
     let winner=snapshot.val();
 
 
+
     if(!winner)
     return;
+
 
 
     let popup =
@@ -571,6 +691,7 @@ onValue(winnerRef,(snapshot)=>{
         winner.name
         +
         "<br><br>🏆 HAS WON!";
+
 
 
         popup.classList.add("show");
