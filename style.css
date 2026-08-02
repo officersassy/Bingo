@@ -532,6 +532,12 @@ button {
 font-size:16px;
 
 }
+.number.called {
 
+    background:#008cff;
+
+    color:white;
+
+    box-shadow:0 0 20px #008cff;
 
 }
