@@ -14,28 +14,15 @@ import {
 
 
 
+const gameRef = ref(database, "bingo");
 
-// DATABASE
+const currentRef = ref(database, "bingo/currentCall");
 
-const gameRef =
-ref(database,"bingo");
+const callsRef = ref(database, "bingo/calledNumbers");
 
-
-const currentRef =
-ref(database,"bingo/currentCall");
+const playersRef = ref(database, "bingo/players");
 
 
-const callsRef =
-ref(database,"bingo/calledNumbers");
-
-
-const playersRef =
-ref(database,"bingo/players");
-
-
-
-
-// VARIABLES
 
 let calledNumbers = [];
 
@@ -43,33 +30,22 @@ let gameLocked = false;
 
 
 
-
-
 // ==========================
-// LOAD GAME STATUS
+// STATUS
 // ==========================
 
-onValue(gameRef,(snapshot)=>{
+onValue(gameRef, (snapshot)=>{
+
+    const game = snapshot.val();
+
+    if(!game) return;
 
 
-    let game =
-    snapshot.val();
+    gameLocked = game.locked || false;
 
 
-
-    if(!game)
-    return;
-
-
-
-    gameLocked =
-    game.locked || false;
-
-
-
-    let status =
+    const status =
     document.getElementById("gameStatus");
-
 
 
     if(status){
@@ -79,108 +55,127 @@ onValue(gameRef,(snapshot)=>{
 
     }
 
-
 });
 
 
 
 
-
-
-
-
-
 // ==========================
-// LOAD PLAYERS
+// PLAYERS
 // ==========================
 
 onValue(playersRef,(snapshot)=>{
 
 
-    let players =
-    snapshot.val();
+    const players = snapshot.val();
 
 
-
-    let list =
+    const list =
     document.getElementById("playerList");
 
 
-    let count =
+    const count =
     document.getElementById("playerCount");
 
 
-
-    if(!list)
-    return;
-
+    if(!list) return;
 
 
     list.innerHTML="";
 
 
-
     if(!players){
 
-
-        list.innerHTML =
-        "No players yet";
-
+        list.innerHTML="No players yet";
 
         if(count)
         count.innerHTML="0";
 
-
         return;
-
 
     }
 
 
 
-
-
-    let playerArray =
+    const playerArray =
     Object.values(players);
 
 
 
-
-
-    if(count){
-
-        count.innerHTML =
-        playerArray.length;
-
-    }
-
-
-
+    if(count)
+    count.innerHTML =
+    playerArray.length;
 
 
 
     playerArray.forEach(player=>{
 
 
-        let item =
+        const div =
         document.createElement("div");
 
 
-        item.innerHTML =
+        div.innerHTML =
         "👤 " + player.name;
 
 
-        list.appendChild(item);
+        list.appendChild(div);
 
 
     });
-
 
 
 });
 
 
 
+
+
+// ==========================
+// CURRENT NUMBER DISPLAY
+// ==========================
+
+onValue(currentRef,(snapshot)=>{
+
+
+    console.log("Current number update received");
+
+
+    const data =
+    snapshot.val();
+
+
+
+    if(!data){
+
+        console.log("No current number");
+
+        return;
+
+    }
+
+
+
+    console.log(data);
+
+
+
+    const display =
+    document.getElementById("currentNumber");
+
+
+
+    if(display){
+
+
+        display.innerHTML =
+        data.call;
+
+
+    }
+
+
+});
 
 
 
@@ -194,7 +189,6 @@ onValue(playersRef,(snapshot)=>{
 window.openJoining=function(){
 
 
-
     set(gameRef,{
 
         status:"Joining Open",
@@ -204,11 +198,7 @@ window.openJoining=function(){
     });
 
 
-
 };
-
-
-
 
 
 
@@ -222,7 +212,6 @@ window.openJoining=function(){
 window.startGame=function(){
 
 
-
     set(gameRef,{
 
         status:"Game Started",
@@ -232,11 +221,7 @@ window.startGame=function(){
     });
 
 
-
 };
-
-
-
 
 
 
@@ -253,38 +238,26 @@ window.callNumber=function(){
 
     if(!gameLocked){
 
-
         alert("Start the game first");
-
 
         return;
 
-
     }
-
-
-
 
 
 
     let number;
 
 
-
     do{
-
 
         number =
         Math.floor(Math.random()*75)+1;
 
 
-    }
-    while(
+    }while(
         calledNumbers.includes(number)
     );
-
-
-
 
 
 
@@ -292,15 +265,16 @@ window.callNumber=function(){
 
 
 
-    let call =
-    getLetter(number)+" "+number;
+    const letter =
+    getLetter(number);
 
 
 
+    const call =
+    letter+" "+number;
 
 
 
-    // CURRENT NUMBER
 
     set(currentRef,{
 
@@ -314,10 +288,6 @@ window.callNumber=function(){
 
 
 
-
-
-    // HISTORY
-
     push(callsRef,call);
 
 
@@ -329,30 +299,19 @@ window.callNumber=function(){
 
 
 
-
-
-
 function getLetter(number){
 
 
-    if(number<=15)
-    return "B";
+    if(number<=15) return "B";
 
+    if(number<=30) return "I";
 
-    if(number<=30)
-    return "I";
+    if(number<=45) return "N";
 
-
-    if(number<=45)
-    return "N";
-
-
-    if(number<=60)
-    return "G";
+    if(number<=60) return "G";
 
 
     return "O";
-
 
 }
 
@@ -362,70 +321,22 @@ function getLetter(number){
 
 
 
-
-
 // ==========================
-// SHOW CURRENT NUMBER
-// ==========================
-
-onValue(currentRef,(snapshot)=>{
-
-
-    let data =
-    snapshot.val();
-
-
-
-    if(!data)
-    return;
-
-
-
-    let display =
-    document.getElementById("currentNumber");
-
-
-
-    if(display){
-
-
-        display.innerHTML =
-        data.call;
-
-
-    }
-
-
-
-});
-
-
-
-
-
-
-
-
-
-// ==========================
-// LOAD CALL HISTORY
+// HISTORY
 // ==========================
 
 onValue(callsRef,(snapshot)=>{
 
 
-    let data =
+    const data =
     snapshot.val();
 
 
-
-    let history =
+    const history =
     document.getElementById("calledNumbers");
 
 
-
-    if(!history)
-    return;
+    if(!history) return;
 
 
 
@@ -433,24 +344,7 @@ onValue(callsRef,(snapshot)=>{
 
 
 
-    calledNumbers=[];
-
-
-
     if(data){
-
-
-        Object.values(data)
-        .forEach(call=>{
-
-
-            calledNumbers.push(
-                Number(call.split(" ")[1])
-            );
-
-
-        });
-
 
 
         Object.values(data)
@@ -458,14 +352,15 @@ onValue(callsRef,(snapshot)=>{
         .forEach(call=>{
 
 
-            let div =
+            const div =
             document.createElement("div");
 
 
             div.className="called";
 
 
-            div.innerHTML=call;
+            div.innerHTML =
+            call;
 
 
             history.appendChild(div);
@@ -477,7 +372,6 @@ onValue(callsRef,(snapshot)=>{
     }
 
 
-
 });
 
 
@@ -485,23 +379,15 @@ onValue(callsRef,(snapshot)=>{
 
 
 
-
-
-
 // ==========================
-// RESET GAME
+// RESET
 // ==========================
 
 window.resetGame=function(){
 
 
-
     if(!confirm("Reset Bingo game?"))
-
     return;
-
-
-
 
 
     set(gameRef,{
@@ -513,22 +399,11 @@ window.resetGame=function(){
     });
 
 
-
-
+    remove(currentRef);
 
     remove(callsRef);
 
-
-    remove(currentRef);
-
-
     remove(ref(database,"bingo/winner"));
-
-
-
-
-
-    alert("Game reset");
 
 
 };
