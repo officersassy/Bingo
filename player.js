@@ -12,8 +12,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 
-
-// KEEP YOUR FIREBASE CONFIG THE SAME AS HOST
+// KEEP YOUR FIREBASE CONFIG
 
 const firebaseConfig = {
   apiKey: "AIzaSyDme5iZZNPN0O128vw0MP9aGjLZXD3oKy8",
@@ -26,11 +25,9 @@ const firebaseConfig = {
 };
 
 
-
 const app = initializeApp(firebaseConfig);
 
 const database = getDatabase(app);
-
 
 
 
@@ -41,6 +38,10 @@ const currentRef =
 ref(database,"bingo/currentCall");
 
 
+const callsRef =
+ref(database,"bingo/calledNumbers");
+
+
 const winnerRef =
 ref(database,"bingo/winner");
 
@@ -48,22 +49,14 @@ ref(database,"bingo/winner");
 
 
 
+let playerName="";
 
-// PLAYER VARIABLES
+let myCard=[];
 
-let playerName = "";
-
-let myCard = [];
-
+let calledNumbers=[];
 
 
 
-
-
-
-// ==========================
-// CREATE BINGO CARD
-// ==========================
 
 
 const card =
@@ -72,37 +65,37 @@ document.getElementById("card");
 
 
 
-function randomNumbers(min,max,total){
 
+
+
+// ==========================
+// CREATE CARD
+// ==========================
+
+
+function randomNumbers(min,max,total){
 
     let numbers=[];
 
 
     while(numbers.length < total){
 
-
         let number =
         Math.floor(Math.random()*(max-min+1))+min;
 
 
-
         if(!numbers.includes(number)){
-
 
             numbers.push(number);
 
-
         }
-
 
     }
 
 
     return numbers;
 
-
 }
-
 
 
 
@@ -112,19 +105,16 @@ window.createCard=function(){
 
 
     if(!card)
-        return;
-
+    return;
 
 
     card.innerHTML="";
-
 
     myCard=[];
 
 
 
     let columns=[
-
 
         randomNumbers(1,15,5),
 
@@ -136,33 +126,25 @@ window.createCard=function(){
 
         randomNumbers(61,75,5)
 
-
     ];
 
 
 
 
-
-    for(let row=0; row<5; row++){
-
+    for(let row=0;row<5;row++){
 
 
         let newRow=[];
 
 
-
-        for(let col=0; col<5; col++){
-
+        for(let col=0;col<5;col++){
 
 
             let square =
             document.createElement("div");
 
 
-
             square.className="number";
-
-
 
 
 
@@ -176,9 +158,7 @@ window.createCard=function(){
                 newRow.push("FREE");
 
 
-            }
-
-            else{
+            } else {
 
 
                 let number =
@@ -208,9 +188,7 @@ window.createCard=function(){
             card.appendChild(square);
 
 
-
         }
-
 
 
         myCard.push(newRow);
@@ -237,7 +215,7 @@ createCard();
 
 
 // ==========================
-// SAVE PLAYER NAME
+// PLAYER NAME
 // ==========================
 
 
@@ -251,22 +229,18 @@ window.saveName=function(){
 
     if(!input.value){
 
-
         alert("Enter your name");
 
         return;
 
-
     }
-
 
 
     playerName=input.value;
 
 
-
     alert(
-        "Welcome " + playerName
+        "Welcome "+playerName
     );
 
 
@@ -281,38 +255,152 @@ window.saveName=function(){
 
 
 // ==========================
-// SHOW CURRENT NUMBER
+// CURRENT NUMBER
 // ==========================
 
 
 onValue(currentRef,(snapshot)=>{
 
 
-    let data =
-    snapshot.val();
+    let data=snapshot.val();
 
 
 
     if(!data)
-        return;
+    return;
 
 
 
-    let current =
+    let display =
     document.getElementById("playerCurrent");
 
 
 
-    if(current){
+    if(display){
+
+        display.innerHTML=data.call;
+
+    }
 
 
-        current.innerHTML=data.call;
+
+});
+
+
+
+
+
+
+
+
+
+// ==========================
+// GET ALL CALLED NUMBERS
+// ==========================
+
+
+onValue(callsRef,(snapshot)=>{
+
+
+    let data=snapshot.val();
+
+
+    calledNumbers=[];
+
+
+
+    if(data){
+
+
+        calledNumbers =
+        Object.values(data);
+
 
 
     }
 
 
+    updateCalledHighlights();
+
+
+
 });
+
+
+
+
+
+
+
+
+
+// ==========================
+// HIGHLIGHT CALLED NUMBERS
+// ==========================
+
+
+function updateCalledHighlights(){
+
+
+    document.querySelectorAll(".number")
+    .forEach(square=>{
+
+
+        square.classList.remove("called");
+
+
+        let value =
+        square.innerHTML;
+
+
+
+        if(calledNumbers.includes(
+            getLetter(value)+" "+value
+        )){
+
+
+            square.classList.add("called");
+
+
+        }
+
+
+    });
+
+
+}
+
+
+
+
+
+
+function getLetter(number){
+
+
+    number=Number(number);
+
+
+    if(number<=15)
+    return "B";
+
+
+    if(number<=30)
+    return "I";
+
+
+    if(number<=45)
+    return "N";
+
+
+    if(number<=60)
+    return "G";
+
+
+    return "O";
+
+
+}
 
 
 
@@ -330,9 +418,7 @@ onValue(currentRef,(snapshot)=>{
 window.claimBingo=function(){
 
 
-
     let marked=[];
-
 
 
     document.querySelectorAll(".selected")
@@ -353,31 +439,22 @@ window.claimBingo=function(){
 
 
 
-
-
-    // CHECK ROWS
-
     for(let r=0;r<5;r++){
 
 
         let complete=true;
 
 
-
         for(let c=0;c<5;c++){
 
 
-            let value =
-            myCard[r][c];
-
+            let value=myCard[r][c];
 
 
             if(value!="FREE" &&
             !marked.includes(Number(value))){
 
-
                 complete=false;
-
 
             }
 
@@ -385,9 +462,8 @@ window.claimBingo=function(){
         }
 
 
-
         if(complete)
-            win=true;
+        win=true;
 
 
     }
@@ -395,10 +471,6 @@ window.claimBingo=function(){
 
 
 
-
-
-
-    // CHECK COLUMNS
 
     for(let c=0;c<5;c++){
 
@@ -406,21 +478,16 @@ window.claimBingo=function(){
         let complete=true;
 
 
-
         for(let r=0;r<5;r++){
 
 
-            let value =
-            myCard[r][c];
-
+            let value=myCard[r][c];
 
 
             if(value!="FREE" &&
             !marked.includes(Number(value))){
 
-
                 complete=false;
-
 
             }
 
@@ -428,13 +495,11 @@ window.claimBingo=function(){
         }
 
 
-
         if(complete)
-            win=true;
+        win=true;
 
 
     }
-
 
 
 
@@ -443,32 +508,23 @@ window.claimBingo=function(){
 
     if(!win){
 
-
         alert("❌ Not a valid Bingo");
 
-
         return;
-
 
     }
 
 
 
 
-
-
     set(winnerRef,{
-
 
         name:
         playerName || "Unknown Player",
 
-
         time:Date.now()
 
-
     });
-
 
 
 };
@@ -482,27 +538,22 @@ window.claimBingo=function(){
 
 
 // ==========================
-// WINNER POPUP
+// WINNER DISPLAY
 // ==========================
 
 
 onValue(winnerRef,(snapshot)=>{
 
 
-    let winner =
-    snapshot.val();
-
+    let winner=snapshot.val();
 
 
     if(!winner)
-        return;
-
-
+    return;
 
 
     let popup =
     document.getElementById("winnerPopup");
-
 
 
     let text =
@@ -513,7 +564,7 @@ onValue(winnerRef,(snapshot)=>{
     if(popup && text){
 
 
-        text.innerHTML =
+        text.innerHTML=
 
         "🎉 BINGO WINNER 🎉<br><br>"
         +
@@ -522,12 +573,10 @@ onValue(winnerRef,(snapshot)=>{
         "<br><br>🏆 HAS WON!";
 
 
-
         popup.classList.add("show");
 
 
     }
-
 
 
 });
