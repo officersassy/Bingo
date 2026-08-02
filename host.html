@@ -3,70 +3,142 @@
 
 <head>
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
 
-    <title>Bingo Host Control</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="style.css">
+<title>Bingo Host</title>
+
+<link rel="stylesheet" href="style.css">
 
 </head>
 
+
 <body>
+
 
 <div class="background"></div>
 
+
 <div class="host-container">
 
-    <h1>🎱 BINGO HOST CONTROL</h1>
 
-    <div class="current-card">
+<h1>🎤 BINGO CONTROL</h1>
 
-        <p>Current Call</p>
 
-        <div id="currentNumber">--</div>
+<div class="current-card">
 
-    </div>
+<h3>CURRENT CALL</h3>
 
-    <div class="stats">
 
-        <div class="stat">
+<div id="currentNumber">
+--
+</div>
 
-            <h3>Called</h3>
-
-            <span id="calledCount">0</span>
-
-        </div>
-
-        <div class="stat">
-
-            <h3>Remaining</h3>
-
-            <span id="remainingCount">75</span>
-
-        </div>
-
-    </div>
-
-    <div class="buttons">
-
-        <button onclick="callNumber()">
-            🎲 Call Next Number
-        </button>
-
-        <button onclick="resetGame()">
-            🔄 Reset Game
-        </button>
-
-    </div>
-
-    <h2>Numbers Called</h2>
-
-    <div id="calledNumbers"></div>
 
 </div>
 
+
+
+
+<div class="stats">
+
+
+<div class="stat">
+
+<h3>Called</h3>
+
+<span id="calledCount">
+0
+</span>
+
+</div>
+
+
+
+<div class="stat">
+
+<h3>Remaining</h3>
+
+<span id="remainingCount">
+75
+</span>
+
+</div>
+
+
+</div>
+
+
+
+
+
+<div class="controls">
+
+
+<button onclick="callNumber()">
+
+🎱 CALL NEXT NUMBER
+
+</button>
+
+
+
+<button onclick="resetGame()">
+
+🔄 RESET GAME
+
+</button>
+
+
+</div>
+
+
+
+
+
+<div class="last-call">
+
+
+<h2>
+Last Calls
+</h2>
+
+
+<div id="lastCalls">
+
+</div>
+
+
+</div>
+
+
+
+
+
+<div class="all-called">
+
+
+<h2>
+All Called Numbers
+</h2>
+
+
+<div id="calledNumbers">
+
+</div>
+
+
+</div>
+
+
+
+</div>
+
+
+
 <script src="script.js"></script>
+
 
 </body>
 
