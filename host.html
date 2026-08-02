@@ -20,13 +20,21 @@
 <div class="background"></div>
 
 
+
 <div class="host-container">
+
 
 
 <h1>🎤 BINGO HOST CONTROL</h1>
 
 
-<div id="winnerPopup" class="winner-popup"></div>
+
+
+<div id="winnerPopup" class="winner-popup">
+
+</div>
+
+
 
 
 
@@ -34,11 +42,18 @@
 
 <h3>CURRENT CALL</h3>
 
+
 <div id="currentNumber">
+
 --
-</div>
 
 </div>
+
+
+</div>
+
+
+
 
 
 
@@ -51,7 +66,9 @@
 <h3>Called</h3>
 
 <span id="calledCount">
+
 0
+
 </span>
 
 </div>
@@ -63,7 +80,9 @@
 <h3>Remaining</h3>
 
 <span id="remainingCount">
+
 75
+
 </span>
 
 </div>
@@ -72,6 +91,11 @@
 </div>
 
 
+
+
+
+
+<div class="controls">
 
 
 <button onclick="callNumber()">
@@ -89,24 +113,66 @@
 </button>
 
 
+</div>
+
+
+
+
 
 
 <div class="game-status">
 
-<h2>Status</h2>
+
+<h2>Game Status</h2>
+
 
 <div id="gameStatus">
-Waiting...
-</div>
+
+Waiting for players...
 
 </div>
 
 
+</div>
 
-<div id="lastCalls"></div>
 
 
-<div id="calledNumbers"></div>
+
+
+
+<div class="last-call">
+
+
+<h2>Last 5 Calls</h2>
+
+
+<div id="lastCalls">
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+<div class="all-called">
+
+
+<h2>All Called Numbers</h2>
+
+
+<div id="calledNumbers">
+
+</div>
+
+
+</div>
+
+
 
 
 
@@ -119,5 +185,6 @@ Waiting...
 
 
 </body>
+
 
 </html>
