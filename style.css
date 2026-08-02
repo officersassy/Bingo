@@ -362,3 +362,37 @@ a {
 }
 
 }
+/* Host number animation */
+
+#currentNumber {
+
+    transition: .3s;
+
+}
+
+.flash {
+
+    animation: numberFlash .6s ease;
+
+}
+
+@keyframes numberFlash {
+
+    0% {
+        transform: scale(.6);
+        opacity: .3;
+    }
+
+    50% {
+        transform: scale(1.25);
+        text-shadow:
+            0 0 15px #38bdf8,
+            0 0 35px #38bdf8;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+}
