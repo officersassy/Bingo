@@ -1,240 +1,302 @@
-*{
-    margin:0;
-    padding:0;
+/* ==========================
+   GLOBAL
+========================== */
+
+* {
+
     box-sizing:border-box;
-    font-family:"Segoe UI",Arial,sans-serif;
+
+    font-family:Arial, Helvetica, sans-serif;
+
 }
 
 
-body{
+
+body {
+
+    margin:0;
 
     min-height:100vh;
 
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
+    background:linear-gradient(135deg,#061a40,#003b73,#00509d);
 
     color:white;
 
-    background:#020617;
+    overflow-x:hidden;
 
 }
 
 
-/* BACKGROUND */
 
-.background{
+
+
+.background {
 
     position:fixed;
 
-    inset:0;
+    width:100%;
+
+    height:100%;
+
+    top:0;
+
+    left:0;
+
+    background:
+    radial-gradient(circle at top,#1e90ff33,transparent 40%),
+    radial-gradient(circle at bottom,#00ffff22,transparent 40%);
 
     z-index:-1;
 
-
-    background:
-
-    radial-gradient(circle at top left,#0284c7,transparent 35%),
-
-    radial-gradient(circle at bottom right,#2563eb,transparent 40%),
-
-    linear-gradient(135deg,#020617,#0f172a);
-
-
-    animation:bgMove 12s infinite alternate;
-
 }
 
 
 
-@keyframes bgMove{
-
-    from{
-        transform:scale(1);
-    }
-
-    to{
-        transform:scale(1.15);
-    }
-
-}
 
 
 
-/* GENERAL PANELS */
+
+/* ==========================
+   CONTAINERS
+========================== */
 
 
-.main-container,
 .host-container,
-.player-container{
+.player-container {
 
+    width:90%;
 
-    width:95%;
+    max-width:900px;
 
-    max-width:1100px;
-
-    padding:40px;
-
-    text-align:center;
-
-
-    background:
-
-    rgba(255,255,255,.08);
-
-
-    border-radius:30px;
-
-
-    border:
-
-    1px solid rgba(255,255,255,.2);
-
-
-    backdrop-filter:blur(20px);
-
-
-    box-shadow:
-
-    0 0 50px rgba(14,165,233,.5);
-
-}
-
-
-
-/* HEADINGS */
-
-
-h1{
-
-    font-size:45px;
-
-    margin-bottom:25px;
-
-
-    text-shadow:
-
-    0 0 25px #38bdf8;
-
-}
-
-
-
-p{
-
-    font-size:22px;
-
-    color:#dbeafe;
-
-}
-
-
-
-/* BUTTONS */
-
-
-button{
-
-    padding:18px 35px;
-
-    margin:15px;
-
-
-    border:none;
-
-    border-radius:15px;
-
-
-    cursor:pointer;
-
-
-    color:white;
-
-
-    font-size:18px;
-
-
-    background:
-
-    linear-gradient(135deg,#2563eb,#06b6d4);
-
-
-
-    box-shadow:
-
-    0 0 20px #0284c7;
-
-
-    transition:.3s;
-
-}
-
-
-
-button:hover{
-
-    transform:scale(1.08);
-
-    box-shadow:
-
-    0 0 35px #38bdf8;
-
-}
-
-
-
-a{
-
-    text-decoration:none;
-
-}
-
-
-
-/* HOST */
-
-
-.current-card{
-
-    margin:25px auto;
+    margin:40px auto;
 
     padding:30px;
 
+    background:rgba(255,255,255,0.12);
+
+    backdrop-filter:blur(15px);
 
     border-radius:25px;
 
+    box-shadow:0 0 30px rgba(0,0,0,0.4);
 
-    background:
-
-    rgba(255,255,255,.1);
-
-}
-
-
-
-.current-card h3{
-
-    font-size:25px;
+    text-align:center;
 
 }
 
 
 
-#currentNumber{
 
 
-    width:180px;
 
-    height:180px;
+h1 {
+
+    font-size:45px;
+
+    margin-bottom:30px;
+
+    text-shadow:0 0 15px #00ffff;
+
+}
 
 
-    margin:20px auto;
 
 
-    border-radius:50%;
 
+
+
+/* ==========================
+   CURRENT NUMBER
+========================== */
+
+
+.current-card,
+.player-call {
+
+    background:rgba(0,0,0,0.35);
+
+    padding:25px;
+
+    border-radius:20px;
+
+    margin-bottom:25px;
+
+}
+
+
+
+#currentNumber,
+#playerCurrent {
+
+    font-size:70px;
+
+    font-weight:bold;
+
+    color:#ffd700;
+
+    text-shadow:0 0 20px #ffd700;
+
+}
+
+
+
+
+
+
+
+
+/* ==========================
+   BUTTONS
+========================== */
+
+
+button {
+
+    background:linear-gradient(135deg,#00bfff,#005bea);
+
+    border:none;
+
+    color:white;
+
+    padding:15px 35px;
+
+    margin:10px;
+
+    border-radius:15px;
+
+    font-size:20px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:0.3s;
+
+}
+
+
+
+button:hover {
+
+    transform:scale(1.08);
+
+    box-shadow:0 0 20px #00ffff;
+
+}
+
+
+
+
+
+
+
+
+/* ==========================
+   STATS
+========================== */
+
+
+.stats {
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:30px;
+
+    margin:20px;
+
+}
+
+
+
+.stat {
+
+    background:rgba(0,0,0,0.35);
+
+    padding:20px;
+
+    border-radius:15px;
+
+    min-width:150px;
+
+}
+
+
+
+.stat span {
+
+    font-size:40px;
+
+    color:#ffd700;
+
+}
+
+
+
+
+
+
+
+
+/* ==========================
+   BINGO CARD
+========================== */
+
+
+.bingo {
+
+    display:grid;
+
+    grid-template-columns:repeat(5,1fr);
+
+    gap:10px;
+
+    max-width:500px;
+
+    margin:30px auto;
+
+}
+
+
+
+.header {
+
+    background:#ffd700;
+
+    color:#000;
+
+    font-size:35px;
+
+    font-weight:bold;
+
+    padding:15px;
+
+    border-radius:10px;
+
+}
+
+
+
+.card {
+
+    grid-column:1 / 6;
+
+    display:grid;
+
+    grid-template-columns:repeat(5,1fr);
+
+    gap:10px;
+
+}
+
+
+
+
+
+.number {
+
+    aspect-ratio:1;
 
     display:flex;
 
@@ -242,77 +304,63 @@ a{
 
     justify-content:center;
 
+    background:rgba(255,255,255,0.2);
 
-    font-size:55px;
+    border-radius:12px;
+
+    font-size:25px;
 
     font-weight:bold;
 
+    cursor:pointer;
 
-    background:
-
-    radial-gradient(circle at 30% 30%,
-
-    white,
-
-    #38bdf8,
-
-    #2563eb);
-
-
-    box-shadow:
-
-    0 0 40px #38bdf8;
+    transition:0.2s;
 
 }
 
 
 
-.stats{
+.number:hover {
 
-    display:flex;
-
-    justify-content:center;
-
-    gap:25px;
+    transform:scale(1.05);
 
 }
 
 
 
-.stat{
+.number.selected {
 
-    width:180px;
+    background:#ffd700;
 
-    padding:20px;
-
-
-    background:
-
-    rgba(255,255,255,.1);
-
-
-    border-radius:20px;
+    color:black;
 
 }
 
 
 
-.stat span{
+.number.free {
 
-    display:block;
+    background:#00ff99;
 
-    font-size:40px;
-
-    margin-top:10px;
+    color:black;
 
 }
 
 
+
+
+
+
+
+
+
+/* ==========================
+   CALL HISTORY
+========================== */
 
 
 #calledNumbers,
-#lastCalls{
-
+#lastCalls {
 
     display:flex;
 
@@ -322,26 +370,17 @@ a{
 
     gap:10px;
 
-
-    margin-top:20px;
-
 }
 
 
 
-.called{
+.called {
 
+    background:rgba(0,0,0,0.4);
 
-    padding:12px 18px;
+    padding:10px 15px;
 
-
-    border-radius:12px;
-
-
-    background:
-
-    linear-gradient(135deg,#0284c7,#2563eb);
-
+    border-radius:10px;
 
     font-size:20px;
 
@@ -349,201 +388,43 @@ a{
 
 
 
-/* PLAYER */
 
 
-.player-call{
 
 
-    margin-bottom:25px;
 
 
-    padding:20px;
-
-
-    background:
-
-    rgba(255,255,255,.1);
-
-
-    border-radius:20px;
-
-}
-
-
-
-#playerCurrent{
-
-    font-size:45px;
-
-    font-weight:bold;
-
-    color:#38bdf8;
-
-}
-
-
-
-
-.bingo{
-
-
-    display:grid;
-
-
-    grid-template-columns:
-
-    repeat(5,70px);
-
-
-    gap:10px;
-
-
-    justify-content:center;
-
-}
-
-
-
-.header{
-
-
-    height:60px;
-
-
-    display:flex;
-
-
-    justify-content:center;
-
-
-    align-items:center;
-
-
-    background:#0284c7;
-
-
-    border-radius:12px;
-
-
-    font-size:30px;
-
-    font-weight:bold;
-
-}
-
-
-
-.card{
-
-
-    display:contents;
-
-}
-
-
-
-.number{
-
-
-    height:70px;
-
-
-    background:white;
-
-
-    color:#111827;
-
-
-    border-radius:12px;
-
-
-    display:flex;
-
-
-    justify-content:center;
-
-
-    align-items:center;
-
-
-    font-size:22px;
-
-
-    font-weight:bold;
-
-
-    cursor:pointer;
-
-
-}
-
-
-
-.number:hover{
-
-    transform:scale(1.1);
-
-}
-
-
-
-.number.selected{
-
-
-    background:#2563eb;
-
-    color:white;
-
-}
-
-
-
-.free{
-
-
-    background:#06b6d4;
-
-    color:white;
-
-}
-
-
-
-/* MOBILE */
-
-
-@media(max-width:600px){
-
-
-    h1{
-
-        font-size:32px;
-
-    }
-
-
-    .bingo{
-
-        grid-template-columns:
-
-        repeat(5,55px);
-
-        gap:6px;
-
-    }
-
-
-    .number,
-    .header{
-
-        width:55px;
-
-        height:55px;
-
-    }
 /* ==========================
-   BIG WINNER POPUP
+   INPUT
+========================== */
+
+
+input {
+
+    padding:15px;
+
+    border-radius:10px;
+
+    border:none;
+
+    font-size:20px;
+
+    width:250px;
+
+    text-align:center;
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+   WINNER POPUP
 ========================== */
 
 
@@ -569,18 +450,6 @@ a{
 
     align-items:center;
 
-    text-align:center;
-
-    font-size:60px;
-
-    font-weight:bold;
-
-    color:white;
-
-    padding:20px;
-
-    animation:winnerFade 0.5s ease;
-
 }
 
 
@@ -594,27 +463,75 @@ a{
 
 
 
-@keyframes winnerFade {
+.winner-box {
 
+    background:rgba(20,20,20,0.95);
 
-from {
+    padding:60px;
 
-    opacity:0;
+    border-radius:30px;
 
-    transform:scale(0.8);
+    text-align:center;
 
-}
+    font-size:55px;
 
+    font-weight:bold;
 
-to {
-
-    opacity:1;
-
-    transform:scale(1);
+    box-shadow:0 0 50px #ffd700;
 
 }
 
 
+
+.winner-box button {
+
+    margin-top:40px;
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+   MOBILE
+========================== */
+
+
+@media(max-width:600px){
+
+
+h1 {
+
+font-size:32px;
+
+}
+
+
+#currentNumber,
+#playerCurrent {
+
+font-size:50px;
+
+}
+
+
+.number {
+
+font-size:18px;
+
+}
+
+
+button {
+
+font-size:16px;
+
+}
 
 
 }
