@@ -1,96 +1,106 @@
-const card = document.getElementById("card");
+let called = [];
+
+let currentNumber = null;
 
 
-function randomNumbers(min, max, total){
 
-    let numbers = [];
-
-    while(numbers.length < total){
-
-        let num = Math.floor(
-            Math.random() * (max - min + 1)
-        ) + min;
+function callNumber(){
 
 
-        if(!numbers.includes(num)){
-            numbers.push(num);
-        }
+    let number;
+
+
+    do {
+
+        number =
+        Math.floor(Math.random()*75)+1;
+
+
+    }
+    while(called.includes(number));
+
+
+
+    called.push(number);
+
+
+    currentNumber = number;
+
+
+    let display =
+    document.getElementById("currentNumber");
+
+
+    if(display){
+
+        display.innerHTML = number;
 
     }
 
-    return numbers;
+
+    let history =
+    document.getElementById("calledNumbers");
+
+
+    if(history){
+
+        history.innerHTML="";
+
+
+        called.forEach(num=>{
+
+
+            let item =
+            document.createElement("div");
+
+
+            item.className="called";
+
+            item.innerHTML=num;
+
+
+            history.appendChild(item);
+
+
+        });
+
+
+    }
+
 
 }
 
 
 
-function createCard(){
 
-    if(!card){
-        return;
-    }
+function resetGame(){
 
 
-    card.innerHTML = "";
+    called=[];
+
+    currentNumber=null;
 
 
-    let columns = [
-
-        randomNumbers(1,15,5),
-        randomNumbers(16,30,5),
-        randomNumbers(31,45,5),
-        randomNumbers(46,60,5),
-        randomNumbers(61,75,5)
-
-    ];
+    let display =
+    document.getElementById("currentNumber");
 
 
+    if(display){
 
-    for(let row = 0; row < 5; row++){
-
-
-        for(let col = 0; col < 5; col++){
-
-
-            let square = document.createElement("div");
-
-            square.classList.add("number");
-
-
-
-            if(row === 2 && col === 2){
-
-                square.innerHTML = "FREE";
-
-                square.classList.add("free");
-
-            }
-
-            else{
-
-
-                square.innerHTML = columns[col][row];
-
-
-                square.onclick = function(){
-
-                    square.classList.toggle("selected");
-
-                };
-
-
-            }
-
-
-            card.appendChild(square);
-
-
-        }
+        display.innerHTML="--";
 
     }
+
+
+    let history =
+    document.getElementById("calledNumbers");
+
+
+    if(history){
+
+        history.innerHTML="";
+
+    }
+
 
 }
-
-
-
-createCard();
