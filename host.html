@@ -1,69 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Bingo Host Control</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="style.css">
+    <title>Bingo Host Control</title>
+
+    <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
 
 <div class="background"></div>
 
-<div class="host-panel">
+<div class="host-container">
 
-<h1>🎱 BINGO CONTROL</h1>
+    <h1>🎱 BINGO HOST CONTROL</h1>
 
-<div class="current-panel">
+    <div class="current-card">
 
-<h3>CURRENT CALL</h3>
+        <p>Current Call</p>
 
-<div id="currentNumber">--</div>
+        <div id="currentNumber">--</div>
 
-</div>
+    </div>
 
-<div class="stats">
+    <div class="stats">
 
-<div class="stat-box">
+        <div class="stat">
 
-<h4>Called</h4>
+            <h3>Called</h3>
 
-<span id="calledCount">0</span>
+            <span id="calledCount">0</span>
 
-</div>
+        </div>
 
-<div class="stat-box">
+        <div class="stat">
 
-<h4>Remaining</h4>
+            <h3>Remaining</h3>
 
-<span id="remainingCount">75</span>
+            <span id="remainingCount">75</span>
 
-</div>
+        </div>
 
-</div>
+    </div>
 
-<div class="controls">
+    <div class="buttons">
 
-<button onclick="callNumber()">
-🎲 CALL NEXT NUMBER
-</button>
+        <button onclick="callNumber()">
+            🎲 Call Next Number
+        </button>
 
-<button onclick="resetGame()">
-🔄 RESET GAME
-</button>
+        <button onclick="resetGame()">
+            🔄 Reset Game
+        </button>
 
-</div>
+    </div>
 
-<h2>Called Numbers</h2>
+    <h2>Numbers Called</h2>
 
-<div id="calledNumbers"></div>
+    <div id="calledNumbers"></div>
 
 </div>
 
 <script src="script.js"></script>
 
 </body>
+
 </html>
