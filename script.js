@@ -133,6 +133,11 @@ function callNumber() {
     } while (calledNumbers.includes(number));
 
     calledNumbers.push(number);
+    const calledCount = document.getElementById("calledCount");
+const remainingCount = document.getElementById("remainingCount");
+
+if (calledCount) calledCount.textContent = calledNumbers.length;
+if (remainingCount) remainingCount.textContent = 75 - calledNumbers.length;
 
     const bingoCall = getLetter(number) + " " + number;
 
