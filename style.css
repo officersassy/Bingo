@@ -1,12 +1,13 @@
 /* ==========================
-   GLOBAL
+   BINGO MAIN STYLE
 ========================== */
+
 
 * {
 
-    box-sizing:border-box;
+    box-sizing: border-box;
 
-    font-family:Arial, Helvetica, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
 
 }
 
@@ -14,43 +15,41 @@
 
 body {
 
-    margin:0;
+    margin: 0;
 
-    min-height:100vh;
+    min-height: 100vh;
 
-    background:linear-gradient(135deg,#061a40,#003b73,#00509d);
+    color: white;
 
-    color:white;
-
-    overflow-x:hidden;
+    overflow-x: hidden;
 
 }
 
 
 
+/* ==========================
+   BACKGROUND
+========================== */
 
 
 .background {
 
-    position:fixed;
+    position: fixed;
 
-    width:100%;
+    width: 100%;
 
-    height:100%;
-
-    top:0;
-
-    left:0;
+    height: 100%;
 
     background:
-    radial-gradient(circle at top,#1e90ff33,transparent 40%),
-    radial-gradient(circle at bottom,#00ffff22,transparent 40%);
+    linear-gradient(
+        135deg,
+        #111827,
+        #1f2937
+    );
 
-    z-index:-1;
+    z-index: -1;
 
 }
-
-
 
 
 
@@ -61,29 +60,30 @@ body {
 ========================== */
 
 
-.host-container,
-.player-container {
+.main-container,
+.player-container,
+.host-container {
 
-    width:90%;
 
-    max-width:900px;
+    width: 90%;
 
-    margin:40px auto;
+    max-width: 900px;
 
-    padding:30px;
+    margin: 40px auto;
 
-    background:rgba(255,255,255,0.12);
+    text-align: center;
 
-    backdrop-filter:blur(15px);
+    background:
 
-    border-radius:25px;
+    rgba(255,255,255,0.08);
 
-    box-shadow:0 0 30px rgba(0,0,0,0.4);
+    padding: 30px;
 
-    text-align:center;
+    border-radius: 20px;
+
+    backdrop-filter: blur(10px);
 
 }
-
 
 
 
@@ -91,55 +91,20 @@ body {
 
 h1 {
 
-    font-size:45px;
+    font-size: 40px;
 
-    margin-bottom:30px;
-
-    text-shadow:0 0 15px #00ffff;
+    margin-bottom: 20px;
 
 }
 
 
 
 
+h2 {
 
-
-
-/* ==========================
-   CURRENT NUMBER
-========================== */
-
-
-.current-card,
-.player-call {
-
-    background:rgba(0,0,0,0.35);
-
-    padding:25px;
-
-    border-radius:20px;
-
-    margin-bottom:25px;
+    margin-top: 15px;
 
 }
-
-
-
-#currentNumber,
-#playerCurrent {
-
-    font-size:70px;
-
-    font-weight:bold;
-
-    color:#ffd700;
-
-    text-shadow:0 0 20px #ffd700;
-
-}
-
-
-
 
 
 
@@ -152,25 +117,23 @@ h1 {
 
 button {
 
-    background:linear-gradient(135deg,#00bfff,#005bea);
 
-    border:none;
+    padding: 15px 25px;
+
+    margin: 10px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    font-size: 18px;
+
+    cursor: pointer;
+
+    background: #2563eb;
 
     color:white;
 
-    padding:15px 35px;
-
-    margin:10px;
-
-    border-radius:15px;
-
-    font-size:20px;
-
-    font-weight:bold;
-
-    cursor:pointer;
-
-    transition:0.3s;
 
 }
 
@@ -178,12 +141,10 @@ button {
 
 button:hover {
 
-    transform:scale(1.08);
 
-    box-shadow:0 0 20px #00ffff;
+    transform: scale(1.05);
 
 }
-
 
 
 
@@ -192,43 +153,23 @@ button:hover {
 
 
 /* ==========================
-   STATS
+   INPUTS
 ========================== */
 
 
-.stats {
-
-    display:flex;
-
-    justify-content:center;
-
-    gap:30px;
-
-    margin:20px;
-
-}
+input {
 
 
+    padding: 15px;
 
-.stat {
+    font-size: 18px;
 
-    background:rgba(0,0,0,0.35);
+    border-radius: 10px;
 
-    padding:20px;
+    border:none;
 
-    border-radius:15px;
+    width:250px;
 
-    min-width:150px;
-
-}
-
-
-
-.stat span {
-
-    font-size:40px;
-
-    color:#ffd700;
 
 }
 
@@ -246,49 +187,57 @@ button:hover {
 
 .bingo {
 
-    display:grid;
 
-    grid-template-columns:repeat(5,1fr);
-
-    gap:10px;
-
-    max-width:500px;
+    width: 350px;
 
     margin:30px auto;
 
+
 }
+
 
 
 
 .header {
 
-    background:#ffd700;
 
-    color:#000;
+    display:inline-flex;
 
-    font-size:35px;
+    width:20%;
+
+    height:50px;
+
+    justify-content:center;
+
+    align-items:center;
+
+    background:#dc2626;
+
+    font-size:25px;
 
     font-weight:bold;
 
-    padding:15px;
-
-    border-radius:10px;
-
 }
+
+
 
 
 
 .card {
 
-    grid-column:1 / 6;
 
     display:grid;
 
-    grid-template-columns:repeat(5,1fr);
+    grid-template-columns:
 
-    gap:10px;
+    repeat(5,1fr);
+
+    gap:5px;
+
 
 }
+
+
 
 
 
@@ -296,31 +245,42 @@ button:hover {
 
 .number {
 
-    aspect-ratio:1;
+
+    height:60px;
 
     display:flex;
 
-    align-items:center;
-
     justify-content:center;
 
-    background:rgba(255,255,255,0.2);
+    align-items:center;
 
-    border-radius:12px;
 
-    font-size:25px;
+    background:white;
+
+    color:#111827;
+
+    font-size:22px;
 
     font-weight:bold;
 
+
+    border-radius:8px;
+
     cursor:pointer;
 
+
     transition:0.2s;
+
 
 }
 
 
 
+
+
+
 .number:hover {
+
 
     transform:scale(1.05);
 
@@ -328,25 +288,17 @@ button:hover {
 
 
 
-.number.selected {
 
-    background:#ffd700;
 
-    color:black;
+.free {
+
+
+    background:#9ca3af;
+
+    color:white;
+
 
 }
-
-
-
-.number.free {
-
-    background:#00ff99;
-
-    color:black;
-
-}
-
-
 
 
 
@@ -355,37 +307,48 @@ button:hover {
 
 
 /* ==========================
-   CALL HISTORY
+   CALLED NUMBER
 ========================== */
-
-
-#calledNumbers,
-#lastCalls {
-
-    display:flex;
-
-    flex-wrap:wrap;
-
-    justify-content:center;
-
-    gap:10px;
-
-}
-
 
 
 .called {
 
-    background:rgba(0,0,0,0.4);
 
-    padding:10px 15px;
+    background:#ffd966 !important;
 
-    border-radius:10px;
+    color:#222 !important;
 
-    font-size:20px;
+    border:
+
+    3px solid #e6b800;
+
 
 }
 
+
+
+
+
+
+
+/* ==========================
+   PLAYER MARKED NUMBER
+========================== */
+
+
+.selected {
+
+
+    background:#4a90e2 !important;
+
+    color:white !important;
+
+    border:
+
+    3px solid #1c5fa8;
+
+
+}
 
 
 
@@ -395,26 +358,66 @@ button:hover {
 
 
 /* ==========================
-   INPUT
+   CURRENT NUMBER DISPLAY
 ========================== */
 
 
-input {
+#playerCurrent,
+#currentNumber {
 
-    padding:15px;
 
-    border-radius:10px;
+    font-size:50px;
 
-    border:none;
+    font-weight:bold;
 
-    font-size:20px;
+    margin:20px;
 
-    width:250px;
-
-    text-align:center;
 
 }
 
+
+
+
+
+
+
+
+/* ==========================
+   HOST BOXES
+========================== */
+
+
+.host-box {
+
+
+    background:
+
+    rgba(255,255,255,0.1);
+
+    padding:20px;
+
+    margin:20px;
+
+    border-radius:15px;
+
+
+}
+
+
+
+
+#playerList div,
+.called {
+
+
+    margin:8px;
+
+    padding:10px;
+
+    border-radius:8px;
+
+
+}
 
 
 
@@ -430,62 +433,35 @@ input {
 
 .winner-popup {
 
+
     display:none;
 
     position:fixed;
 
-    top:0;
+    top:50%;
 
-    left:0;
+    left:50%;
 
-    width:100%;
 
-    height:100%;
+    transform:
 
-    background:rgba(0,0,0,0.85);
+    translate(-50%,-50%);
+
+
+    background:#16a34a;
+
+    color:white;
+
+
+    padding:50px;
+
+    border-radius:25px;
+
+
+    font-size:40px;
 
     z-index:9999;
 
-    justify-content:center;
-
-    align-items:center;
-
-}
-
-
-
-.winner-popup.show {
-
-    display:flex;
-
-}
-
-
-
-
-.winner-box {
-
-    background:rgba(20,20,20,0.95);
-
-    padding:60px;
-
-    border-radius:30px;
-
-    text-align:center;
-
-    font-size:55px;
-
-    font-weight:bold;
-
-    box-shadow:0 0 50px #ffd700;
-
-}
-
-
-
-.winner-box button {
-
-    margin-top:40px;
 
 }
 
@@ -505,46 +481,29 @@ input {
 @media(max-width:600px){
 
 
-h1 {
+    .bingo {
 
-font-size:32px;
+        width:95%;
 
-}
-
-
-#currentNumber,
-#playerCurrent {
-
-font-size:50px;
-
-}
+    }
 
 
-.number {
 
-font-size:18px;
+    .number {
 
-}
+        height:45px;
+
+        font-size:18px;
+
+    }
 
 
-button {
 
-font-size:16px;
+    h1 {
 
-}
-.number.called {
+        font-size:30px;
 
-    background:#008cff;
+    }
 
-    color:white;
-
-    box-shadow:0 0 20px #008cff;
-
-}
-.called {
-
-    background: yellow !important;
-
-    color: black;
 
 }
