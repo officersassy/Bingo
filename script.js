@@ -1,21 +1,62 @@
 // ==========================
+// FIREBASE CONNECTION
+// ==========================
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import { 
+    getDatabase,
+    ref,
+    set,
+    onValue
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+
+// ==========================
+// PASTE YOUR FIREBASE CONFIG HERE
+// ==========================
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDme5iZZNPN0O128vw0MP9aGjLZXD3oKy8",
+  authDomain: "bingo-5174e.firebaseapp.com",
+  databaseURL: "https://bingo-5174e-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "bingo-5174e",
+  storageBucket: "bingo-5174e.firebasestorage.app",
+  messagingSenderId: "647984877295",
+  appId: "1:647984877295:web:a74b477fa7d46dc9cc551a"
+};
+
+
+
+const app = initializeApp(firebaseConfig);
+
+const database = getDatabase(app);
+
+const gameRef = ref(database, "bingo/currentCall");
+
+
+
+
+// ==========================
 // PLAYER BINGO CARD
 // ==========================
 
 const card = document.getElementById("card");
 
 
-function randomNumbers(min, max, total) {
 
-    let numbers = [];
+function randomNumbers(min,max,total){
 
-    while (numbers.length < total) {
+    let numbers=[];
+
+
+    while(numbers.length < total){
 
         let number =
-            Math.floor(Math.random() * (max - min + 1)) + min;
+        Math.floor(Math.random()*(max-min+1))+min;
 
 
-        if (!numbers.includes(number)) {
+        if(!numbers.includes(number)){
 
             numbers.push(number);
 
@@ -23,60 +64,74 @@ function randomNumbers(min, max, total) {
 
     }
 
+
     return numbers;
 
 }
 
 
 
-function createCard() {
-
-    if (!card) return;
 
 
-    card.innerHTML = "";
+function createCard(){
+
+    if(!card){
+
+        return;
+
+    }
 
 
-    let columns = [
+    card.innerHTML="";
 
-        randomNumbers(1, 15, 5),
-        randomNumbers(16, 30, 5),
-        randomNumbers(31, 45, 5),
-        randomNumbers(46, 60, 5),
-        randomNumbers(61, 75, 5)
+
+    let columns=[
+
+        randomNumbers(1,15,5),
+
+        randomNumbers(16,30,5),
+
+        randomNumbers(31,45,5),
+
+        randomNumbers(46,60,5),
+
+        randomNumbers(61,75,5)
 
     ];
 
 
 
-    for (let row = 0; row < 5; row++) {
+
+    for(let row=0; row<5; row++){
 
 
-        for (let col = 0; col < 5; col++) {
+        for(let col=0; col<5; col++){
 
 
-            let square = document.createElement("div");
+            let square=document.createElement("div");
 
 
-            square.className = "number";
+            square.className="number";
 
 
 
-            if (row === 2 && col === 2) {
+            if(row===2 && col===2){
 
 
-                square.innerHTML = "FREE";
+                square.innerHTML="FREE";
 
                 square.classList.add("free");
 
 
-            } else {
+            }
+
+            else{
 
 
-                square.innerHTML = columns[col][row];
+                square.innerHTML=columns[col][row];
 
 
-                square.onclick = function () {
+                square.onclick=function(){
 
                     square.classList.toggle("selected");
 
@@ -93,6 +148,7 @@ function createCard() {
 
     }
 
+
 }
 
 
@@ -104,24 +160,25 @@ createCard();
 
 
 // ==========================
-// BINGO HOST SYSTEM
+// HOST NUMBER CALLER
 // ==========================
 
 
-let calledNumbers = [];
+let calledNumbers=[];
 
 
 
-function getLetter(number) {
+
+function getLetter(number){
 
 
-    if (number <= 15) return "B";
+    if(number<=15) return "B";
 
-    if (number <= 30) return "I";
+    if(number<=30) return "I";
 
-    if (number <= 45) return "N";
+    if(number<=45) return "N";
 
-    if (number <= 60) return "G";
+    if(number<=60) return "G";
 
     return "O";
 
@@ -131,16 +188,7 @@ function getLetter(number) {
 
 
 
-function callNumber() {
-
-
-    if (calledNumbers.length >= 75) {
-
-        alert("All numbers have been called!");
-
-        return;
-
-    }
+window.callNumber = function(){
 
 
 
@@ -148,15 +196,15 @@ function callNumber() {
 
 
 
-    do {
+    do{
 
 
-        number = Math.floor(Math.random() * 75) + 1;
+        number =
+        Math.floor(Math.random()*75)+1;
 
 
 
-    } while (calledNumbers.includes(number));
-
+    }while(calledNumbers.includes(number));
 
 
 
@@ -165,32 +213,46 @@ function callNumber() {
 
 
     let bingoCall =
-        getLetter(number) + " " + number;
+    getLetter(number)+" "+number;
+
+
+
+    // SEND TO FIREBASE
+
+    set(gameRef, {
+
+        call: bingoCall,
+
+        time: Date.now()
+
+    });
 
 
 
 
-    // Save for player page
 
-    localStorage.setItem(
-        "currentBingoCall",
-        bingoCall
-    );
+    updateHostDisplay(bingoCall);
 
 
 
+}
 
-    // Host current number
+
+
+
+
+function updateHostDisplay(call){
+
+
 
     let current =
-        document.getElementById("currentNumber");
+    document.getElementById("currentNumber");
 
 
 
-    if (current) {
+    if(current){
 
-
-        current.innerHTML = bingoCall;
+        current.innerHTML=call;
 
 
         current.classList.remove("ball-pop");
@@ -201,50 +263,25 @@ function callNumber() {
 
         current.classList.add("ball-pop");
 
-
     }
 
 
-
-
-
-    // Player current number
-
-    let playerCurrent =
-        document.getElementById("playerCurrent");
-
-
-
-    if (playerCurrent) {
-
-
-        playerCurrent.innerHTML = bingoCall;
-
-
-    }
-
-
-
-
-
-    // Full history
 
     let history =
-        document.getElementById("calledNumbers");
+    document.getElementById("calledNumbers");
 
 
 
-    if (history) {
+    if(history){
 
 
-        let item =
-            document.createElement("div");
+        let item=document.createElement("div");
 
 
-        item.className = "called";
+        item.className="called";
 
 
-        item.innerHTML = bingoCall;
+        item.innerHTML=call;
 
 
         history.prepend(item);
@@ -253,190 +290,125 @@ function callNumber() {
     }
 
 
-
-
-
-    // Last 5 calls
-
-    let last =
-        document.getElementById("lastCalls");
-
-
-
-    if (last) {
-
-
-        let item =
-            document.createElement("div");
-
-
-        item.className = "called";
-
-
-        item.innerHTML = bingoCall;
-
-
-        last.prepend(item);
-
-
-
-        while (last.children.length > 5) {
-
-            last.removeChild(last.lastChild);
-
-        }
-
-
-    }
-
-
-
-    updateStats();
-
-
 }
 
 
 
 
 
+// ==========================
+// LIVE PLAYER LISTENER
+// ==========================
 
 
-function updateStats() {
+onValue(gameRef,(snapshot)=>{
 
 
-    let count =
-        document.getElementById("calledCount");
-
-
-    let remaining =
-        document.getElementById("remainingCount");
+    const data=snapshot.val();
 
 
 
-    if (count) {
+    if(!data){
 
-        count.innerHTML =
-            calledNumbers.length;
+        return;
 
     }
 
 
 
-    if (remaining) {
-
-        remaining.innerHTML =
-            75 - calledNumbers.length;
-
-    }
-
-
-}
-
-
-
-
-
-
-
-function resetGame() {
-
-
-    calledNumbers = [];
-
-
-
-    localStorage.removeItem(
-        "currentBingoCall"
-    );
-
-
-
-    let current =
-        document.getElementById("currentNumber");
-
-
-    if (current) {
-
-        current.innerHTML = "--";
-
-    }
-
+    let call=data.call;
 
 
 
     let playerCurrent =
-        document.getElementById("playerCurrent");
-
-
-    if (playerCurrent) {
-
-        playerCurrent.innerHTML = "--";
-
-    }
-
-
-
-
-    let history =
-        document.getElementById("calledNumbers");
-
-
-    if (history) {
-
-        history.innerHTML = "";
-
-    }
-
-
-
-
-    let last =
-        document.getElementById("lastCalls");
-
-
-    if (last) {
-
-        last.innerHTML = "";
-
-    }
-
-
-
-
-    updateStats();
-
-
-}
-
-
-
-
-
-
-
-// ==========================
-// LOAD CURRENT CALL FOR PLAYER
-// ==========================
-
-
-let savedCall =
-    localStorage.getItem(
-        "currentBingoCall"
-    );
-
-
-
-let playerDisplay =
     document.getElementById("playerCurrent");
 
 
 
-if (playerDisplay && savedCall) {
+    if(playerCurrent){
 
 
-    playerDisplay.innerHTML =
-        savedCall;
+        playerCurrent.innerHTML=call;
+
+
+    }
+
+
+
+    let current =
+    document.getElementById("currentNumber");
+
+
+
+    if(current){
+
+
+        current.innerHTML=call;
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+
+// ==========================
+// RESET GAME
+// ==========================
+
+
+window.resetGame=function(){
+
+
+    set(gameRef,{
+
+        call:"--",
+
+        time:Date.now()
+
+    });
+
+
+
+    let current =
+    document.getElementById("currentNumber");
+
+
+    if(current){
+
+        current.innerHTML="--";
+
+    }
+
+
+
+    let player =
+    document.getElementById("playerCurrent");
+
+
+    if(player){
+
+        player.innerHTML="--";
+
+    }
+
+
+
+    let history =
+    document.getElementById("calledNumbers");
+
+
+    if(history){
+
+        history.innerHTML="";
+
+    }
 
 
 }
