@@ -1,20 +1,18 @@
 // ==========================
-// FIREBASE CONNECTION
+// FIREBASE
 // ==========================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
-import { 
+import {
     getDatabase,
     ref,
     set,
-    onValue
+    onValue,
+    update
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 
-// ==========================
-// PASTE YOUR FIREBASE CONFIG HERE
-// ==========================
 
 const firebaseConfig = {
   apiKey: "AIzaSyDme5iZZNPN0O128vw0MP9aGjLZXD3oKy8",
@@ -32,40 +30,59 @@ const app = initializeApp(firebaseConfig);
 
 const database = getDatabase(app);
 
-const gameRef = ref(database, "bingo/currentCall");
+
+const gameRef = ref(database,"bingo/game");
+
 
 
 
 
 // ==========================
-// PLAYER BINGO CARD
+// VARIABLES
 // ==========================
 
-const card = document.getElementById("card");
+
+let myCard=[];
+
+let playerName="";
+
+let gameLocked=false;
+
+
+
+
+
+
+
+// ==========================
+// CREATE CARD
+// ==========================
+
+
+const card=document.getElementById("card");
 
 
 
 function randomNumbers(min,max,total){
 
-    let numbers=[];
+let nums=[];
 
 
-    while(numbers.length < total){
+while(nums.length<total){
 
-        let number =
-        Math.floor(Math.random()*(max-min+1))+min;
-
-
-        if(!numbers.includes(number)){
-
-            numbers.push(number);
-
-        }
-
-    }
+let n=Math.floor(Math.random()*(max-min+1))+min;
 
 
-    return numbers;
+if(!nums.includes(n)){
+
+nums.push(n);
+
+}
+
+}
+
+
+return nums;
 
 }
 
@@ -73,80 +90,95 @@ function randomNumbers(min,max,total){
 
 
 
-function createCard(){
-
-    if(!card){
-
-        return;
-
-    }
+window.createCard=function(){
 
 
-    card.innerHTML="";
+if(!card)return;
 
 
-    let columns=[
+card.innerHTML="";
 
-        randomNumbers(1,15,5),
 
-        randomNumbers(16,30,5),
+myCard=[];
 
-        randomNumbers(31,45,5),
 
-        randomNumbers(46,60,5),
 
-        randomNumbers(61,75,5)
+let columns=[
 
-    ];
+randomNumbers(1,15,5),
+randomNumbers(16,30,5),
+randomNumbers(31,45,5),
+randomNumbers(46,60,5),
+randomNumbers(61,75,5)
+
+];
 
 
 
 
-    for(let row=0; row<5; row++){
+
+for(let r=0;r<5;r++){
 
 
-        for(let col=0; col<5; col++){
+let row=[];
 
 
-            let square=document.createElement("div");
+for(let c=0;c<5;c++){
 
 
-            square.className="number";
+let box=document.createElement("div");
+
+box.className="number";
 
 
 
-            if(row===2 && col===2){
+if(r===2 && c===2){
+
+box.innerHTML="FREE";
+
+box.classList.add("free");
+
+row.push("FREE");
 
 
-                square.innerHTML="FREE";
+}
 
-                square.classList.add("free");
-
-
-            }
-
-            else{
+else{
 
 
-                square.innerHTML=columns[col][row];
+let value=columns[c][r];
 
 
-                square.onclick=function(){
-
-                    square.classList.toggle("selected");
-
-                };
+box.innerHTML=value;
 
 
-            }
+row.push(value);
 
 
-            card.appendChild(square);
+
+box.onclick=function(){
+
+box.classList.toggle("selected");
+
+};
 
 
-        }
+}
 
-    }
+
+
+card.appendChild(box);
+
+
+}
+
+
+
+myCard.push(row);
+
+
+}
+
 
 
 }
@@ -159,28 +191,143 @@ createCard();
 
 
 
+
+
 // ==========================
-// HOST NUMBER CALLER
+// PLAYER NAME
 // ==========================
 
 
-let calledNumbers=[];
+window.saveName=function(){
+
+
+let input=document.getElementById("playerName");
+
+
+if(!input.value){
+
+alert("Enter your name");
+
+return;
+
+}
+
+
+playerName=input.value;
+
+
+};
 
 
 
 
-function getLetter(number){
 
 
-    if(number<=15) return "B";
 
-    if(number<=30) return "I";
 
-    if(number<=45) return "N";
 
-    if(number<=60) return "G";
+// ==========================
+// HOST CALL NUMBER
+// ==========================
 
-    return "O";
+
+window.callNumber=function(){
+
+
+if(gameLocked)return;
+
+
+
+let number=Math.floor(Math.random()*75)+1;
+
+
+
+let letter;
+
+
+if(number<=15)letter="B";
+else if(number<=30)letter="I";
+else if(number<=45)letter="N";
+else if(number<=60)letter="G";
+else letter="O";
+
+
+
+let call=letter+" "+number;
+
+
+
+
+update(gameRef,{
+
+currentCall:call
+
+});
+
+
+};
+
+
+
+
+
+
+
+
+// ==========================
+// BINGO CHECK
+// ==========================
+
+
+window.claimBingo=function(){
+
+
+if(gameLocked)return;
+
+
+
+let selected=[];
+
+
+document.querySelectorAll(".selected")
+.forEach(x=>{
+
+selected.push(Number(x.innerHTML));
+
+});
+
+
+
+let win=false;
+
+
+
+// rows
+
+for(let r=0;r<5;r++){
+
+
+let good=true;
+
+
+for(let c=0;c<5;c++){
+
+
+let n=myCard[r][c];
+
+
+if(n!="FREE" && !selected.includes(Number(n))){
+
+good=false;
+
+}
+
+
+}
+
+
+if(good)win=true;
+
 
 }
 
@@ -188,51 +335,33 @@ function getLetter(number){
 
 
 
-window.callNumber = function(){
+
+// columns
+
+for(let c=0;c<5;c++){
+
+
+let good=true;
+
+
+for(let r=0;r<5;r++){
+
+
+let n=myCard[r][c];
+
+
+if(n!="FREE" && !selected.includes(Number(n))){
+
+good=false;
+
+}
+
+
+}
 
 
 
-    let number;
-
-
-
-    do{
-
-
-        number =
-        Math.floor(Math.random()*75)+1;
-
-
-
-    }while(calledNumbers.includes(number));
-
-
-
-    calledNumbers.push(number);
-
-
-
-    let bingoCall =
-    getLetter(number)+" "+number;
-
-
-
-    // SEND TO FIREBASE
-
-    set(gameRef, {
-
-        call: bingoCall,
-
-        time: Date.now()
-
-    });
-
-
-
-
-
-    updateHostDisplay(bingoCall);
-
+if(good)win=true;
 
 
 }
@@ -241,112 +370,95 @@ window.callNumber = function(){
 
 
 
-function updateHostDisplay(call){
 
+if(!win){
 
+alert("Not a valid Bingo!");
 
-    let current =
-    document.getElementById("currentNumber");
-
-
-
-    if(current){
-
-        current.innerHTML=call;
-
-
-        current.classList.remove("ball-pop");
-
-
-        void current.offsetWidth;
-
-
-        current.classList.add("ball-pop");
-
-    }
-
-
-
-    let history =
-    document.getElementById("calledNumbers");
-
-
-
-    if(history){
-
-
-        let item=document.createElement("div");
-
-
-        item.className="called";
-
-
-        item.innerHTML=call;
-
-
-        history.prepend(item);
-
-
-    }
-
+return;
 
 }
 
 
 
 
+update(gameRef,{
+
+winner:playerName || "Unknown Player",
+
+locked:true
+
+});
+
+
+};
+
+
+
+
+
+
+
 
 // ==========================
-// LIVE PLAYER LISTENER
+// FIREBASE LISTENER
 // ==========================
 
 
-onValue(gameRef,(snapshot)=>{
+onValue(gameRef,(snap)=>{
 
 
-    const data=snapshot.val();
+let data=snap.val();
 
 
-
-    if(!data){
-
-        return;
-
-    }
+if(!data)return;
 
 
 
-    let call=data.call;
+if(data.currentCall){
+
+
+let p=document.getElementById("playerCurrent");
+
+if(p)p.innerHTML=data.currentCall;
 
 
 
-    let playerCurrent =
-    document.getElementById("playerCurrent");
+let h=document.getElementById("currentNumber");
+
+if(h)h.innerHTML=data.currentCall;
+
+
+}
 
 
 
-    if(playerCurrent){
+if(data.locked){
 
 
-        playerCurrent.innerHTML=call;
+gameLocked=true;
 
 
-    }
+document.querySelectorAll(".winner-popup")
+.forEach(x=>{
 
 
-
-    let current =
-    document.getElementById("currentNumber");
+x.style.display="block";
 
 
+x.innerHTML=
 
-    if(current){
+"🎉 BINGO WINNER 🎉<br><br>"
++
+data.winner
++
+" has won!";
 
 
-        current.innerHTML=call;
+});
 
 
-    }
+}
 
 
 
@@ -358,57 +470,28 @@ onValue(gameRef,(snapshot)=>{
 
 
 
+
+
 // ==========================
-// RESET GAME
+// RESET
 // ==========================
 
 
 window.resetGame=function(){
 
 
-    set(gameRef,{
-
-        call:"--",
-
-        time:Date.now()
-
-    });
+gameLocked=false;
 
 
+set(gameRef,{
 
-    let current =
-    document.getElementById("currentNumber");
+currentCall:"--",
 
+winner:null,
 
-    if(current){
+locked:false
 
-        current.innerHTML="--";
-
-    }
-
+});
 
 
-    let player =
-    document.getElementById("playerCurrent");
-
-
-    if(player){
-
-        player.innerHTML="--";
-
-    }
-
-
-
-    let history =
-    document.getElementById("calledNumbers");
-
-
-    if(history){
-
-        history.innerHTML="";
-
-    }
-
-
-}
+};
