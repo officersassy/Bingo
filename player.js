@@ -1,26 +1,22 @@
-// ==========================
-// BINGO PLAYER ORIGINAL
-// ==========================
-
 import { database } from "./firebase.js";
 
 import {
-    ref,
-    get,
-    onValue,
-    set
+ref,
+get,
+onValue
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 
-let playerID = localStorage.getItem("bingoPlayer");
 
-let myCard = [];
+let playerID =
+localStorage.getItem("bingoPlayer");
+
+let myCard=[];
 
 
 
-const cardArea =
+const card =
 document.getElementById("card");
-
 
 const welcome =
 document.getElementById("welcomePlayer");
@@ -28,61 +24,56 @@ document.getElementById("welcomePlayer");
 
 
 
-// LOAD PLAYER
 
 async function loadPlayer(){
 
 
-    if(!playerID){
+if(!playerID){
 
-        window.location.href="join.html";
+window.location.href="join.html";
 
-        return;
+return;
 
-    }
-
-
-
-    let playerRef =
-    ref(database,"bingo/players/"+playerID);
+}
 
 
 
-    let snapshot =
-    await get(playerRef);
+let playerRef =
+ref(database,"bingo/players/"+playerID);
 
 
 
-    if(!snapshot.exists()){
-
-        window.location.href="join.html";
-
-        return;
-
-    }
+let snapshot =
+await get(playerRef);
 
 
 
-    let player =
-    snapshot.val();
+if(!snapshot.exists()){
+
+window.location.href="join.html";
+
+return;
+
+}
 
 
 
-    myCard =
-    player.card;
+let player =
+snapshot.val();
 
 
 
-    if(welcome){
-
-        welcome.innerHTML =
-        "Welcome " + player.name;
-
-    }
+myCard =
+player.card;
 
 
 
-    displayCard();
+welcome.innerHTML =
+"Welcome " + player.name;
+
+
+
+drawCard();
 
 
 }
@@ -92,65 +83,62 @@ async function loadPlayer(){
 
 
 
-// DISPLAY CARD
 
-function displayCard(){
-
-
-    cardArea.innerHTML="";
+function drawCard(){
 
 
-    myCard.forEach(row=>{
-
-
-        row.forEach(number=>{
-
-
-            let square =
-            document.createElement("div");
-
-
-            square.className="number";
-
-
-            square.innerHTML =
-            number;
+card.innerHTML="";
 
 
 
-            if(number==="FREE"){
+myCard.forEach(row=>{
 
 
-                square.classList.add("free");
+row.forEach(number=>{
 
 
-            }
-
-
-
-            else{
-
-
-                square.onclick=function(){
-
-
-                    square.classList.toggle("selected");
-
-
-                };
-
-
-            }
+let box =
+document.createElement("div");
 
 
 
-            cardArea.appendChild(square);
+box.className="number";
+
+box.innerHTML =
+number;
 
 
-        });
+
+if(number==="FREE"){
+
+box.classList.add("free");
+
+}
 
 
-    });
+
+else{
+
+
+box.onclick=function(){
+
+box.classList.toggle("selected");
+
+};
+
+
+}
+
+
+
+card.appendChild(box);
+
+
+
+});
+
+
+});
 
 
 }
@@ -160,32 +148,23 @@ function displayCard(){
 
 
 
-// CURRENT NUMBER
 
 onValue(
 ref(database,"bingo/currentCall"),
 (snapshot)=>{
 
 
-    let data =
-    snapshot.val();
+let data =
+snapshot.val();
 
 
-    if(!data)
-    return;
+if(!data)
+return;
 
 
 
-    let display =
-    document.getElementById("playerCurrent");
-
-
-    if(display){
-
-        display.innerHTML =
-        data.call;
-
-    }
+document.getElementById("playerCurrent")
+.innerHTML=data.call;
 
 
 });
@@ -195,12 +174,11 @@ ref(database,"bingo/currentCall"),
 
 
 
-// BINGO BUTTON
-
 window.claimBingo=function(){
 
 
-    alert("Bingo checked!");
+alert("Bingo submitted");
+
 
 };
 
