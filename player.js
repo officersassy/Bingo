@@ -1,5 +1,5 @@
 // ==========================
-// BINGO PLAYER SYSTEM V3
+// BINGO PLAYER SYSTEM V4
 // ==========================
 
 import { database } from "./firebase.js";
@@ -13,13 +13,15 @@ import {
 
 
 
-let playerID =
-localStorage.getItem("bingoPlayer");
-
+let playerID = localStorage.getItem("bingoPlayer");
 
 let myCard = [];
 
 let calledNumber = null;
+
+let selectedNumbers = 
+JSON.parse(localStorage.getItem("bingoSelected")) || [];
+
 
 
 
@@ -35,16 +37,14 @@ document.getElementById("welcomePlayer");
 
 
 
-
 // ==========================
-// LOAD PLAYER
+// LOAD PLAYER CARD
 // ==========================
 
 async function loadPlayer(){
 
 
     if(!playerID){
-
 
         window.location.href="join.html";
 
@@ -71,7 +71,9 @@ async function loadPlayer(){
 
         return;
 
+
     }
+
 
 
 
@@ -85,12 +87,14 @@ async function loadPlayer(){
 
 
 
+
     if(welcome){
 
         welcome.innerHTML =
         "Welcome " + player.name;
 
     }
+
 
 
 
@@ -118,10 +122,10 @@ function displayCard(){
 
 
 
-    myCard.forEach((row)=>{
+    myCard.forEach(row=>{
 
 
-        row.forEach((number)=>{
+        row.forEach(number=>{
 
 
             const square =
@@ -132,10 +136,8 @@ function displayCard(){
             square.className="number";
 
 
-
             square.innerHTML =
             number;
-
 
 
 
@@ -151,7 +153,7 @@ function displayCard(){
 
 
 
-
+            // PLAYER MANUAL MARKING
 
             else{
 
@@ -159,7 +161,54 @@ function displayCard(){
                 square.onclick=function(){
 
 
-                    square.classList.toggle("selected");
+
+                    let value =
+                    String(number);
+
+
+
+                    if(
+                    square.classList.contains("selected")
+                    ){
+
+
+                        square.classList.remove("selected");
+
+
+
+                        selectedNumbers =
+                        selectedNumbers.filter(
+                            item => item !== value
+                        );
+
+
+
+                    }
+
+                    else{
+
+
+                        square.classList.add("selected");
+
+
+
+                        selectedNumbers.push(value);
+
+
+
+                    }
+
+
+
+
+                    localStorage.setItem(
+
+                        "bingoSelected",
+
+                        JSON.stringify(selectedNumbers)
+
+                    );
+
 
 
                 };
@@ -171,18 +220,34 @@ function displayCard(){
 
 
 
+            // RESTORE MANUAL MARK
 
-            // CHECK CALLED NUMBER
+            if(
+            selectedNumbers.includes(String(number))
+            ){
+
+                square.classList.add("selected");
+
+            }
+
+
+
+
+
+
+
+            // AUTOMATIC CALLED NUMBER
 
             if(
                 number === calledNumber
             ){
 
-
                 square.classList.add("called");
 
-
             }
+
+
+
 
 
 
@@ -197,6 +262,7 @@ function displayCard(){
     });
 
 
+
 }
 
 
@@ -208,7 +274,7 @@ function displayCard(){
 
 
 // ==========================
-// CURRENT CALL
+// LIVE CURRENT CALL
 // ==========================
 
 const currentRef =
@@ -239,12 +305,11 @@ onValue(currentRef,(snapshot)=>{
 
     if(display){
 
-
         display.innerHTML =
         data.call;
 
-
     }
+
 
 
 
@@ -274,36 +339,19 @@ onValue(currentRef,(snapshot)=>{
 
 
 // ==========================
-// BINGO BUTTON
+// CLAIM BINGO
 // ==========================
 
 window.claimBingo=function(){
 
 
-    let marked=[];
-
-
-
-    document
-    .querySelectorAll(".selected")
-    .forEach(square=>{
-
-
-        marked.push(
-            square.innerHTML
-        );
-
-
-    });
-
-
-
-
-    if(checkBingo(marked)){
+    if(checkBingo()){
 
 
         set(
+
         ref(database,"bingo/winner"),
+
         {
 
             name:playerID,
@@ -313,17 +361,15 @@ window.claimBingo=function(){
         });
 
 
-
     }
 
     else{
 
 
-        alert("❌ Not Bingo");
+        alert("❌ Not a Bingo");
 
 
     }
-
 
 
 };
@@ -336,7 +382,11 @@ window.claimBingo=function(){
 
 
 
-function checkBingo(marked){
+// ==========================
+// CHECK WINNER
+// ==========================
+
+function checkBingo(){
 
 
 
@@ -348,8 +398,8 @@ function checkBingo(marked){
         let complete=true;
 
 
-        for(let c=0;c<5;c++){
 
+        for(let c=0;c<5;c++){
 
 
             let value =
@@ -358,8 +408,11 @@ function checkBingo(marked){
 
 
             if(
+
                 value !== "FREE" &&
-                !marked.includes(String(value))
+
+                !selectedNumbers.includes(String(value))
+
             ){
 
 
@@ -378,6 +431,9 @@ function checkBingo(marked){
 
 
     }
+
+
+
 
 
 
@@ -391,6 +447,7 @@ function checkBingo(marked){
         let complete=true;
 
 
+
         for(let r=0;r<5;r++){
 
 
@@ -401,8 +458,11 @@ function checkBingo(marked){
 
 
             if(
+
                 value !== "FREE" &&
-                !marked.includes(String(value))
+
+                !selectedNumbers.includes(String(value))
+
             ){
 
 
@@ -424,10 +484,12 @@ function checkBingo(marked){
 
 
 
+
     return false;
 
 
 }
+
 
 
 
