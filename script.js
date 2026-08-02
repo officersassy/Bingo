@@ -1,22 +1,22 @@
-// =======================
+// ==========================
 // PLAYER BINGO CARD
-// =======================
+// ==========================
 
 const card = document.getElementById("card");
 
 
-function randomNumbers(min,max,total){
+function randomNumbers(min, max, total) {
 
-    let numbers=[];
+    let numbers = [];
+
+    while(numbers.length < total) {
+
+        let number = Math.floor(
+            Math.random() * (max - min + 1)
+        ) + min;
 
 
-    while(numbers.length < total){
-
-        let number =
-        Math.floor(Math.random()*(max-min+1))+min;
-
-
-        if(!numbers.includes(number)){
+        if(!numbers.includes(number)) {
 
             numbers.push(number);
 
@@ -30,18 +30,15 @@ function randomNumbers(min,max,total){
 
 
 
-function createCard(){
+function createCard() {
+
+    if(!card) return;
 
 
-    if(!card){
-        return;
-    }
+    card.innerHTML = "";
 
 
-    card.innerHTML="";
-
-
-    let columns=[
+    let columns = [
 
         randomNumbers(1,15,5),
         randomNumbers(16,30,5),
@@ -53,31 +50,31 @@ function createCard(){
 
 
 
-    for(let row=0;row<5;row++){
-
-        for(let col=0;col<5;col++){
+    for(let row = 0; row < 5; row++) {
 
 
-            let square=document.createElement("div");
-
-            square.className="number";
+        for(let col = 0; col < 5; col++) {
 
 
-            if(row===2 && col===2){
+            let square = document.createElement("div");
 
-                square.innerHTML="FREE";
+            square.className = "number";
+
+
+            if(row === 2 && col === 2) {
+
+                square.innerHTML = "FREE";
 
                 square.classList.add("free");
 
             }
 
-            else{
+            else {
+
+                square.innerHTML = columns[col][row];
 
 
-                square.innerHTML=columns[col][row];
-
-
-                square.onclick=function(){
+                square.onclick = function(){
 
                     square.classList.toggle("selected");
 
@@ -96,90 +93,190 @@ function createCard(){
 }
 
 
-
 createCard();
 
 
 
 
-// =======================
-// HOST NUMBER CALLER
-// =======================
+// ==========================
+// HOST BINGO CALLER
+// ==========================
+
 
 let calledNumbers = [];
 
-// Work out the Bingo letter
+
+
 function getLetter(number) {
 
-    if (number <= 15) return "B";
-    if (number <= 30) return "I";
-    if (number <= 45) return "N";
-    if (number <= 60) return "G";
+
+    if(number <= 15) return "B";
+
+    if(number <= 30) return "I";
+
+    if(number <= 45) return "N";
+
+    if(number <= 60) return "G";
 
     return "O";
+
 }
+
+
 
 function callNumber() {
 
-    if (calledNumbers.length >= 75) {
+
+    if(calledNumbers.length >= 75) {
+
         alert("All numbers have been called!");
+
         return;
+
     }
+
 
     let number;
 
+
     do {
-        number = Math.floor(Math.random() * 75) + 1;
-    } while (calledNumbers.includes(number));
+
+        number =
+        Math.floor(Math.random()*75)+1;
+
+
+    } while(calledNumbers.includes(number));
+
+
 
     calledNumbers.push(number);
-    const calledCount = document.getElementById("calledCount");
-const remainingCount = document.getElementById("remainingCount");
 
-if (calledCount) calledCount.textContent = calledNumbers.length;
-if (remainingCount) remainingCount.textContent = 75 - calledNumbers.length;
 
-    const bingoCall = getLetter(number) + " " + number;
 
-    const current = document.getElementById("currentNumber");
+    let bingoCall =
+    getLetter(number) + " " + number;
 
-    if (current) {
-        current.textContent = bingoCall;
+
+
+    let current =
+    document.getElementById("currentNumber");
+
+
+
+    if(current) {
+
+
+        current.innerHTML = bingoCall;
+
+
         current.classList.remove("flash");
 
-        // Restart animation
+
         void current.offsetWidth;
 
+
         current.classList.add("flash");
+
     }
 
-    const history = document.getElementById("calledNumbers");
 
-    if (history) {
 
-        const item = document.createElement("div");
-        item.className = "called";
-        item.textContent = bingoCall;
+    let history =
+    document.getElementById("calledNumbers");
+
+
+
+    if(history) {
+
+
+        let item =
+        document.createElement("div");
+
+
+        item.className="called";
+
+
+        item.innerHTML=bingoCall;
+
 
         history.prepend(item);
 
     }
 
+
+
+    updateStats();
+
+
 }
+
+
+
+
+function updateStats() {
+
+
+    let called =
+    document.getElementById("calledCount");
+
+
+    let remaining =
+    document.getElementById("remainingCount");
+
+
+
+    if(called) {
+
+        called.innerHTML =
+        calledNumbers.length;
+
+    }
+
+
+
+    if(remaining) {
+
+        remaining.innerHTML =
+        75 - calledNumbers.length;
+
+    }
+
+
+}
+
+
+
 
 function resetGame() {
 
+
     calledNumbers = [];
-    const calledCount = document.getElementById("calledCount");
-const remainingCount = document.getElementById("remainingCount");
 
-if (calledCount) calledCount.textContent = "0";
-if (remainingCount) remainingCount.textContent = "75";
 
-    const current = document.getElementById("currentNumber");
-    if (current) current.textContent = "--";
+    let current =
+    document.getElementById("currentNumber");
 
-    const history = document.getElementById("calledNumbers");
-    if (history) history.innerHTML = "";
+
+    if(current) {
+
+        current.innerHTML="--";
+
+    }
+
+
+
+    let history =
+    document.getElementById("calledNumbers");
+
+
+    if(history) {
+
+        history.innerHTML="";
+
+    }
+
+
+    updateStats();
+
 
 }
