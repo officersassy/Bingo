@@ -1,8 +1,8 @@
 * {
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:"Segoe UI", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Arial, sans-serif;
 }
 
 
@@ -18,14 +18,15 @@ body {
 
     color:white;
 
-    background:#06152e;
+    background:#020617;
 
     overflow-x:hidden;
 
 }
 
 
-/* Background effect */
+
+/* Animated background */
 
 .background {
 
@@ -33,284 +34,153 @@ body {
 
     inset:0;
 
-    background:
-    radial-gradient(circle at 20% 20%, rgba(0,140,255,.7), transparent 35%),
-    radial-gradient(circle at 80% 80%, rgba(0,80,255,.7), transparent 35%),
-    linear-gradient(135deg,#020617,#06152e);
-
     z-index:-1;
 
-    animation:bgMove 12s infinite alternate;
+    background:
+
+    radial-gradient(circle at top left,
+    #0284c7,
+    transparent 35%),
+
+    radial-gradient(circle at bottom right,
+    #2563eb,
+    transparent 40%),
+
+    linear-gradient(
+    135deg,
+    #020617,
+    #0f172a
+    );
+
+
+    animation:
+    backgroundMove 12s infinite alternate;
 
 }
 
 
-@keyframes bgMove {
+
+@keyframes backgroundMove {
 
     from {
+
         transform:scale(1);
+
     }
 
     to {
+
         transform:scale(1.15);
+
     }
 
 }
 
 
 
-/* Main box */
+/* Host dashboard */
 
-.container {
+.host-container {
 
-    width:90%;
+    width:95%;
 
-    max-width:800px;
+    max-width:1100px;
 
-    padding:45px;
+    padding:40px;
 
     text-align:center;
 
-    background:rgba(255,255,255,.1);
 
-    border:1px solid rgba(255,255,255,.2);
+    background:
+    rgba(255,255,255,.08);
 
-    border-radius:25px;
 
-    backdrop-filter:blur(15px);
+    border:
+
+    1px solid rgba(255,255,255,.2);
+
+
+    border-radius:30px;
+
+
+    backdrop-filter:blur(20px);
+
 
     box-shadow:
-    0 0 40px rgba(0,140,255,.5);
+
+    0 0 50px rgba(14,165,233,.5);
 
 }
 
 
 
+/* Title */
+
 h1 {
 
-    font-size:50px;
+    font-size:45px;
 
-    margin-bottom:20px;
+    margin-bottom:30px;
 
     color:white;
 
     text-shadow:
-    0 0 20px #38bdf8;
 
-}
-
-
-p {
-
-    font-size:22px;
-
-    color:#dbeafe;
-
-    margin-bottom:30px;
-
-}
-
-
-/* Buttons */
-
-button {
-
-    padding:16px 40px;
-
-    margin:15px;
-
-    border:none;
-
-    border-radius:12px;
-
-    background:
-    linear-gradient(135deg,#2563eb,#06b6d4);
-
-    color:white;
-
-    font-size:20px;
-
-    cursor:pointer;
-
-    transition:.3s;
-
-}
-
-
-button:hover {
-
-    transform:scale(1.08);
-
-    box-shadow:
-    0 0 25px #38bdf8;
-
-}
-
-
-a {
-
-    text-decoration:none;
-
-}
-
-
-
-/* Bingo area */
-
-.bingo {
-
-    display:grid;
-
-    grid-template-columns:repeat(5,70px);
-
-    gap:10px;
-
-    justify-content:center;
-
-    margin-top:25px;
-
-}
-
-
-
-/* Letters */
-
-.header {
-
-    height:60px;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    background:
-    linear-gradient(135deg,#0284c7,#2563eb);
-
-    border-radius:12px;
-
-    font-size:30px;
-
-    font-weight:bold;
-
-    box-shadow:
-    0 0 20px #0284c7;
-
-}
-
-
-
-/* Numbers container */
-
-.card {
-
-    display:contents;
-
-}
-
-
-
-/* Bingo numbers */
-
-.number {
-
-    height:70px;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    background:white;
-
-    color:#111827;
-
-    border-radius:12px;
-
-    font-size:22px;
-
-    font-weight:bold;
-
-    cursor:pointer;
-
-    transition:.3s;
-
-}
-
-
-
-.number:hover {
-
-    transform:scale(1.1);
-
-    box-shadow:
-    0 0 20px #38bdf8;
-
-}
-
-
-
-.number.selected {
-
-    background:
-    linear-gradient(135deg,#2563eb,#06b6d4);
-
-    color:white;
-
-    box-shadow:
     0 0 25px #38bdf8;
 
 }
 
 
 
-/* Free space */
+h2 {
 
-.free {
-
-    background:
-    linear-gradient(135deg,#0284c7,#2563eb);
-
-    color:white;
-
-    /* HOST PAGE */
-
-
-.current-box {
-
-    margin:30px auto;
-
-    padding:30px;
-
-    border-radius:20px;
-
-    background:
-    rgba(255,255,255,.12);
-
-    box-shadow:
-    0 0 30px rgba(56,189,248,.5);
+    margin-top:35px;
 
 }
 
 
-.current-box h2 {
+
+/* Current number */
+
+.current-card {
+
+    padding:35px;
+
+    margin:20px auto;
+
+    border-radius:25px;
+
+
+    background:
+
+    rgba(255,255,255,.1);
+
+
+}
+
+
+
+.current-card p {
 
     font-size:25px;
 
+    color:#bae6fd;
+
 }
+
 
 
 #currentNumber {
 
     margin-top:20px;
 
-    font-size:80px;
+    font-size:110px;
 
     font-weight:bold;
 
+
     color:#38bdf8;
+
 
     text-shadow:
 
@@ -320,32 +190,115 @@ a {
 
 
 
-.called-title {
+.flash {
 
-    margin-top:30px;
+    animation:numberPop .5s;
 
 }
 
 
-#calledNumbers {
 
-    margin-top:20px;
+@keyframes numberPop {
+
+
+    0% {
+
+        transform:scale(.5);
+
+        opacity:0;
+
+    }
+
+
+    100% {
+
+        transform:scale(1);
+
+        opacity:1;
+
+    }
+
+}
+
+
+
+/* Stats */
+
+.stats {
 
     display:flex;
 
-    flex-wrap:wrap;
-
     justify-content:center;
 
-    gap:10px;
+    gap:25px;
+
+    margin:30px;
 
 }
 
 
 
-.called {
+.stat {
 
-    padding:10px 15px;
+    width:200px;
+
+    padding:20px;
+
+
+    border-radius:20px;
+
+
+    background:
+
+    rgba(255,255,255,.1);
+
+}
+
+
+
+.stat h3 {
+
+    color:#bae6fd;
+
+}
+
+
+
+.stat span {
+
+    display:block;
+
+    margin-top:10px;
+
+    font-size:45px;
+
+    font-weight:bold;
+
+}
+
+
+
+/* Buttons */
+
+button {
+
+    padding:18px 40px;
+
+    margin:15px;
+
+    border:none;
+
+    border-radius:15px;
+
+
+    cursor:pointer;
+
+
+    font-size:20px;
+
+
+    color:white;
+
 
     background:
 
@@ -355,156 +308,180 @@ a {
     #06b6d4
     );
 
+
+    box-shadow:
+
+    0 0 20px rgba(6,182,212,.6);
+
+
+    transition:.3s;
+
+}
+
+
+
+button:hover {
+
+    transform:
+
+    translateY(-5px)
+    scale(1.05);
+
+
+    box-shadow:
+
+    0 0 35px #38bdf8;
+
+}
+
+
+
+/* Called numbers */
+
+#calledNumbers {
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    justify-content:center;
+
+    gap:12px;
+
+    margin-top:25px;
+
+}
+
+
+
+.called {
+
+    padding:12px 18px;
+
+
+    border-radius:12px;
+
+
+    background:
+
+    linear-gradient(
+    135deg,
+    #0284c7,
+    #2563eb
+    );
+
+
+    font-size:20px;
+
+    font-weight:bold;
+
+
+    box-shadow:
+
+    0 0 15px rgba(37,99,235,.6);
+
+}
+
+
+
+/* Player card support */
+
+.container {
+
+    width:90%;
+
+    max-width:800px;
+
+    padding:40px;
+
+    text-align:center;
+
+    background:
+    rgba(255,255,255,.08);
+
+    border-radius:25px;
+
+    backdrop-filter:blur(20px);
+
+}
+
+
+
+.bingo {
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(5,70px);
+
+    gap:10px;
+
+    justify-content:center;
+
+}
+
+
+
+.header {
+
+    height:60px;
+
+    background:#0284c7;
+
     border-radius:10px;
 
-    font-size:18px;
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:30px;
+
+    font-weight:bold;
 
 }
 
-}
-/* Host number animation */
 
-#currentNumber {
 
-    transition: .3s;
+.number {
 
-}
+    height:70px;
 
-.flash {
+    background:white;
 
-    animation: numberFlash .6s ease;
+    color:#111;
 
-}
+    border-radius:10px;
 
-@keyframes numberFlash {
+    display:flex;
 
-    0% {
-        transform: scale(.6);
-        opacity: .3;
-    }
+    justify-content:center;
 
-    50% {
-        transform: scale(1.25);
-        text-shadow:
-            0 0 15px #38bdf8,
-            0 0 35px #38bdf8;
-    }
+    align-items:center;
 
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    /* HOST DASHBOARD */
+    font-size:22px;
 
-.host-panel{
-
-width:95%;
-max-width:1100px;
-
-padding:40px;
-
-background:rgba(255,255,255,.08);
-
-border-radius:25px;
-
-backdrop-filter:blur(15px);
-
-box-shadow:0 0 40px rgba(0,140,255,.5);
-
-text-align:center;
+    cursor:pointer;
 
 }
 
-.current-panel{
 
-margin:30px auto;
 
-padding:30px;
+.number.selected {
 
-border-radius:20px;
+    background:#2563eb;
 
-background:rgba(255,255,255,.08);
+    color:white;
 
 }
 
-#currentNumber{
 
-font-size:100px;
 
-font-weight:bold;
+.free {
 
-color:#4fc3ff;
+    background:#06b6d4;
 
-text-shadow:0 0 30px #4fc3ff;
-
-margin-top:10px;
-
-}
-
-.stats{
-
-display:flex;
-
-justify-content:center;
-
-gap:20px;
-
-margin:30px 0;
-
-}
-
-.stat-box{
-
-width:180px;
-
-padding:20px;
-
-background:rgba(255,255,255,.08);
-
-border-radius:15px;
-
-}
-
-.stat-box span{
-
-font-size:40px;
-
-font-weight:bold;
-
-display:block;
-
-margin-top:10px;
-
-}
-
-.controls{
-
-margin:30px;
-
-}
-
-#calledNumbers{
-
-display:grid;
-
-grid-template-columns:repeat(auto-fill,minmax(70px,1fr));
-
-gap:10px;
-
-margin-top:20px;
-
-}
-
-.called{
-
-padding:12px;
-
-border-radius:10px;
-
-background:#1976d2;
-
-font-weight:bold;
-
-}
+    color:white;
 
 }
