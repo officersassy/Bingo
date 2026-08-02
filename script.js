@@ -1,5 +1,5 @@
 // ==========================
-// FIREBASE CONNECTION
+// FIREBASE
 // ==========================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -8,12 +8,11 @@ import {
     getDatabase,
     ref,
     set,
-    onValue,
-    push
+    push,
+    onValue
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 
-// KEEP YOUR OWN FIREBASE CONFIG HERE
 
 const firebaseConfig = {
   apiKey: "AIzaSyDme5iZZNPN0O128vw0MP9aGjLZXD3oKy8",
@@ -33,203 +32,60 @@ const database = getDatabase(app);
 
 
 
+
+
 // DATABASE PATHS
 
-const currentRef = ref(database,"bingo/currentCall");
-
-const callsRef = ref(database,"bingo/calledNumbers");
-
-const winnerRef = ref(database,"bingo/winner");
-
-const lockedRef = ref(database,"bingo/locked");
+const currentRef =
+ref(database,"bingo/currentCall");
 
 
+const callsRef =
+ref(database,"bingo/calledNumbers");
 
 
-// VARIABLES
+const winnerRef =
+ref(database,"bingo/winner");
 
-let calledNumbers = [];
 
-let myCard = [];
+const lockedRef =
+ref(database,"bingo/locked");
 
-let playerName = "";
 
-let gameLocked = false;
+
+
+
+let calledNumbers=[];
+
+let gameLocked=false;
+
 
 
 
 
 
 // ==========================
-// BINGO CARD CREATION
+// BINGO LETTER
 // ==========================
 
 
-const card = document.getElementById("card");
+function getLetter(number){
 
+    if(number<=15)
+        return "B";
 
-function randomNumbers(min,max,total){
+    if(number<=30)
+        return "I";
 
-    let numbers=[];
+    if(number<=45)
+        return "N";
 
+    if(number<=60)
+        return "G";
 
-    while(numbers.length < total){
-
-        let n =
-        Math.floor(Math.random()*(max-min+1))+min;
-
-
-        if(!numbers.includes(n)){
-
-            numbers.push(n);
-
-        }
-
-    }
-
-
-    return numbers;
+    return "O";
 
 }
-
-
-
-
-
-window.createCard=function(){
-
-
-    if(!card) return;
-
-
-    card.innerHTML="";
-
-
-    myCard=[];
-
-
-
-    let columns=[
-
-        randomNumbers(1,15,5),
-        randomNumbers(16,30,5),
-        randomNumbers(31,45,5),
-        randomNumbers(46,60,5),
-        randomNumbers(61,75,5)
-
-    ];
-
-
-
-
-    for(let row=0;row<5;row++){
-
-
-        let newRow=[];
-
-
-        for(let col=0;col<5;col++){
-
-
-            let square =
-            document.createElement("div");
-
-
-            square.className="number";
-
-
-
-            if(row===2 && col===2){
-
-
-                square.innerHTML="FREE";
-
-                square.classList.add("free");
-
-                newRow.push("FREE");
-
-
-            }
-            else{
-
-
-                let number =
-                columns[col][row];
-
-
-                square.innerHTML=number;
-
-
-                newRow.push(number);
-
-
-
-                square.onclick=function(){
-
-                    square.classList.toggle("selected");
-
-                };
-
-
-            }
-
-
-            card.appendChild(square);
-
-
-        }
-
-
-        myCard.push(newRow);
-
-
-    }
-
-
-};
-
-
-
-createCard();
-
-
-
-
-
-
-
-// ==========================
-// PLAYER NAME
-// ==========================
-
-
-window.saveName=function(){
-
-
-    let input =
-    document.getElementById("playerName");
-
-
-    if(!input.value){
-
-        alert("Enter your name");
-
-        return;
-
-    }
-
-
-    playerName=input.value;
-
-
-    alert(
-        "Welcome "+playerName
-    );
-
-
-};
-
-
 
 
 
@@ -247,8 +103,6 @@ window.callNumber=function(){
 
     if(gameLocked){
 
-        alert("Game finished");
-
         return;
 
     }
@@ -258,7 +112,9 @@ window.callNumber=function(){
     let number;
 
 
-    do{
+
+    do {
+
 
         number =
         Math.floor(Math.random()*75)+1;
@@ -269,32 +125,16 @@ window.callNumber=function(){
 
 
 
+
+
     calledNumbers.push(number);
 
 
 
-    let letter;
-
-
-    if(number<=15)
-    letter="B";
-
-    else if(number<=30)
-    letter="I";
-
-    else if(number<=45)
-    letter="N";
-
-    else if(number<=60)
-    letter="G";
-
-    else
-    letter="O";
-
-
-
     let call =
-    letter+" "+number;
+    getLetter(number)+" "+number;
+
+
 
 
 
@@ -308,7 +148,10 @@ window.callNumber=function(){
 
 
 
+
+
     push(callsRef,call);
+
 
 
 };
@@ -322,39 +165,28 @@ window.callNumber=function(){
 
 
 // ==========================
-// LIVE NUMBER DISPLAY
+// CURRENT NUMBER DISPLAY
 // ==========================
 
 
-onValue(currentRef,(snap)=>{
+onValue(currentRef,(snapshot)=>{
 
 
-    let data=snap.val();
+    let data=snapshot.val();
 
 
-    if(!data)return;
+    if(!data)
+        return;
 
 
 
-    let host =
+    let current =
     document.getElementById("currentNumber");
 
 
-    if(host){
+    if(current){
 
-        host.innerHTML=data.call;
-
-    }
-
-
-
-    let player =
-    document.getElementById("playerCurrent");
-
-
-    if(player){
-
-        player.innerHTML=data.call;
+        current.innerHTML=data.call;
 
     }
 
@@ -371,14 +203,14 @@ onValue(currentRef,(snap)=>{
 
 
 // ==========================
-// CALLED NUMBERS DISPLAY
+// CALL HISTORY
 // ==========================
 
 
-onValue(callsRef,(snap)=>{
+onValue(callsRef,(snapshot)=>{
 
 
-    let data=snap.val();
+    let data=snapshot.val();
 
 
 
@@ -392,15 +224,19 @@ onValue(callsRef,(snap)=>{
 
 
     if(history)
-    history.innerHTML="";
+        history.innerHTML="";
+
 
 
     if(last)
-    last.innerHTML="";
+        last.innerHTML="";
 
 
 
-    if(!data)return;
+
+    if(!data)
+        return;
+
 
 
 
@@ -410,186 +246,74 @@ onValue(callsRef,(snap)=>{
 
 
 
+
     list.forEach((call,index)=>{
 
 
-        let div =
+        let box =
         document.createElement("div");
 
 
-        div.className="called";
+        box.className="called";
 
-        div.innerHTML=call;
+        box.innerHTML=call;
+
+
 
 
 
         if(history){
 
             history.appendChild(
-                div.cloneNode(true)
+                box.cloneNode(true)
             );
 
         }
 
 
 
-        if(last && index<5){
+
+        if(last && index < 5){
 
             last.appendChild(
-                div.cloneNode(true)
+                box.cloneNode(true)
             );
 
         }
 
 
     });
+
+
+
+
+
+    let count =
+    document.getElementById("calledCount");
+
+
+    let remaining =
+    document.getElementById("remainingCount");
+
+
+
+    if(count){
+
+        count.innerHTML=list.length;
+
+    }
+
+
+    if(remaining){
+
+        remaining.innerHTML=75-list.length;
+
+    }
+
+
 
 
 });
-
-
-
-
-
-
-
-
-
-// ==========================
-// BINGO CHECK
-// ==========================
-
-
-window.claimBingo=function(){
-
-
-    if(gameLocked)return;
-
-
-
-    let marked=[];
-
-
-
-    document.querySelectorAll(".selected")
-    .forEach(item=>{
-
-
-        marked.push(
-            Number(item.innerHTML)
-        );
-
-
-    });
-
-
-
-
-    let win=false;
-
-
-
-
-    // ROWS
-
-    for(let r=0;r<5;r++){
-
-
-        let good=true;
-
-
-        for(let c=0;c<5;c++){
-
-
-            let n=myCard[r][c];
-
-
-            if(n!="FREE" &&
-            !marked.includes(Number(n))){
-
-                good=false;
-
-            }
-
-
-        }
-
-
-        if(good)
-        win=true;
-
-
-    }
-
-
-
-
-
-
-    // COLUMNS
-
-    for(let c=0;c<5;c++){
-
-
-        let good=true;
-
-
-        for(let r=0;r<5;r++){
-
-
-            let n=myCard[r][c];
-
-
-            if(n!="FREE" &&
-            !marked.includes(Number(n))){
-
-                good=false;
-
-            }
-
-
-        }
-
-
-        if(good)
-        win=true;
-
-
-    }
-
-
-
-
-
-
-
-    if(!win){
-
-        alert("❌ Not a valid Bingo");
-
-        return;
-
-    }
-
-
-
-
-
-    set(winnerRef,{
-
-        name:
-        playerName || "Unknown Player",
-
-        time:Date.now()
-
-    });
-
-
-
-    set(lockedRef,true);
-
-
-};
 
 
 
@@ -604,13 +328,16 @@ window.claimBingo=function(){
 // ==========================
 
 
-onValue(winnerRef,(snap)=>{
+onValue(winnerRef,(snapshot)=>{
 
 
-    let winner=snap.val();
+    let winner =
+    snapshot.val();
 
 
-    if(!winner)return;
+
+    if(!winner)
+        return;
 
 
 
@@ -618,14 +345,19 @@ onValue(winnerRef,(snap)=>{
 
 
 
-    document.querySelectorAll(".winner-popup")
-    .forEach(p=>{
+    let popup =
+    document.getElementById("winnerPopup");
 
 
-        p.classList.add("show");
+    let text =
+    document.getElementById("winnerText");
 
 
-        p.innerHTML=
+
+    if(popup && text){
+
+
+        text.innerHTML =
 
         "🎉 BINGO WINNER 🎉<br><br>"
         +
@@ -634,7 +366,12 @@ onValue(winnerRef,(snap)=>{
         "<br><br>🏆 HAS WON!";
 
 
-    });
+
+        popup.classList.add("show");
+
+
+    }
+
 
 
 });
@@ -648,26 +385,88 @@ onValue(winnerRef,(snap)=>{
 
 
 // ==========================
-// RESET
+// CLOSE WINNER
+// ==========================
+
+
+window.closeWinner=function(){
+
+
+    let popup =
+    document.getElementById("winnerPopup");
+
+
+
+    if(popup){
+
+        popup.classList.remove("show");
+
+    }
+
+
+};
+
+
+
+
+
+
+
+
+
+// ==========================
+// RESET GAME
 // ==========================
 
 
 window.resetGame=function(){
 
 
-    set(currentRef,null);
+    if(!confirm("Start a new Bingo game?"))
+        return;
 
-    set(callsRef,null);
 
-    set(winnerRef,null);
 
-    set(lockedRef,false);
+    set(ref(database,"bingo"),{
+
+
+        currentCall:null,
+
+
+        calledNumbers:null,
+
+
+        winner:null,
+
+
+        locked:false,
+
+
+        restartTime:Date.now()
+
+
+    });
 
 
 
     calledNumbers=[];
 
+
     gameLocked=false;
+
+
+
+    let popup =
+    document.getElementById("winnerPopup");
+
+
+
+    if(popup){
+
+        popup.classList.remove("show");
+
+    }
+
 
 
 };
