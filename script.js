@@ -106,106 +106,71 @@ createCard();
 // HOST NUMBER CALLER
 // =======================
 
+let calledNumbers = [];
 
-let calledNumbers=[];
+// Work out the Bingo letter
+function getLetter(number) {
 
+    if (number <= 15) return "B";
+    if (number <= 30) return "I";
+    if (number <= 45) return "N";
+    if (number <= 60) return "G";
 
+    return "O";
+}
 
-function callNumber(){
+function callNumber() {
 
+    if (calledNumbers.length >= 75) {
+        alert("All numbers have been called!");
+        return;
+    }
 
     let number;
 
-
-    do{
-
-        number=Math.floor(Math.random()*75)+1;
-
-
-    }
-
-    while(calledNumbers.includes(number));
-
-
+    do {
+        number = Math.floor(Math.random() * 75) + 1;
+    } while (calledNumbers.includes(number));
 
     calledNumbers.push(number);
 
+    const bingoCall = getLetter(number) + " " + number;
 
+    const current = document.getElementById("currentNumber");
 
-    let current =
-    document.getElementById("currentNumber");
+    if (current) {
+        current.textContent = bingoCall;
+        current.classList.remove("flash");
 
+        // Restart animation
+        void current.offsetWidth;
 
-    if(current){
-
-        current.innerHTML=number;
-
+        current.classList.add("flash");
     }
 
+    const history = document.getElementById("calledNumbers");
 
+    if (history) {
 
-    let list =
-    document.getElementById("calledNumbers");
+        const item = document.createElement("div");
+        item.className = "called";
+        item.textContent = bingoCall;
 
-
-
-    if(list){
-
-
-        list.innerHTML="";
-
-
-        calledNumbers.forEach(num=>{
-
-
-            let item=document.createElement("div");
-
-
-            item.className="called";
-
-
-            item.innerHTML=num;
-
-
-            list.appendChild(item);
-
-
-        });
-
+        history.prepend(item);
 
     }
-
 
 }
 
+function resetGame() {
 
+    calledNumbers = [];
 
-function resetGame(){
+    const current = document.getElementById("currentNumber");
+    if (current) current.textContent = "--";
 
+    const history = document.getElementById("calledNumbers");
+    if (history) history.innerHTML = "";
 
-    calledNumbers=[];
-
-
-    let current =
-    document.getElementById("currentNumber");
-
-
-    if(current){
-
-        current.innerHTML="--";
-
-    }
-
-
-    let list =
-    document.getElementById("calledNumbers");
-
-
-    if(list){
-
-        list.innerHTML="";
-
-    }
-
-
+}
 }
