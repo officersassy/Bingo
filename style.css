@@ -187,37 +187,47 @@ input {
 
 .bingo {
 
-
     width: 350px;
 
     margin:30px auto;
-
 
 }
 
 
 
+.bingo .header {
 
-.header {
+    display:grid;
 
+    grid-template-columns:repeat(5,1fr);
 
-    display:inline-flex;
-
-    width:20%;
+    width:100%;
 
     height:50px;
 
-    justify-content:center;
-
-    align-items:center;
-
     background:#dc2626;
+
+    color:white;
 
     font-size:25px;
 
     font-weight:bold;
 
+    align-items:center;
+
+    justify-items:center;
+
 }
+
+
+/* Header letters */
+
+.header {
+
+    text-align:center;
+
+}
+
 
 
 
@@ -228,9 +238,7 @@ input {
 
     display:grid;
 
-    grid-template-columns:
-
-    repeat(5,1fr);
+    grid-template-columns:repeat(5,1fr);
 
     gap:5px;
 
