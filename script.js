@@ -173,4 +173,3 @@ function resetGame() {
     if (history) history.innerHTML = "";
 
 }
-}
