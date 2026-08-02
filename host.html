@@ -1,208 +1,626 @@
-<!DOCTYPE html>
-<html lang="en">
+// ==========================
+// FIREBASE CONNECTION
+// ==========================
 
-<head>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
-<meta charset="UTF-8">
+import {
+    getDatabase,
+    ref,
+    set,
+    onValue
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Bingo Host</title>
+// ==========================
+// FIREBASE CONFIG
+// ==========================
 
-<link rel="stylesheet" href="style.css">
+const firebaseConfig = {
+  apiKey: "AIzaSyDme5iZZNPN0O128vw0MP9aGjLZXD3oKy8",
+  authDomain: "bingo-5174e.firebaseapp.com",
+  databaseURL: "https://bingo-5174e-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "bingo-5174e",
+  storageBucket: "bingo-5174e.firebasestorage.app",
+  messagingSenderId: "647984877295",
+  appId: "1:647984877295:web:a74b477fa7d46dc9cc551a"
+};
 
-</head>
 
 
-<body>
+const app = initializeApp(firebaseConfig);
 
+const database = getDatabase(app);
 
-<div class="background"></div>
 
 
-<div class="host-container">
+const gameRef = ref(database,"bingo/game");
 
 
 
-<h1>🎤 BINGO HOST CONTROL</h1>
 
 
+// ==========================
+// VARIABLES
+// ==========================
 
 
-<div id="winnerPopup" class="winner-popup">
+let myCard = [];
 
-</div>
+let playerName = "";
 
+let gameLocked = false;
 
 
 
 
-<div class="current-card">
 
+// ==========================
+// CREATE BINGO CARD
+// ==========================
 
-<h3>CURRENT CALL</h3>
 
+const card = document.getElementById("card");
 
-<div id="currentNumber">
 
---
 
-</div>
+function randomNumbers(min,max,total){
 
+    let numbers=[];
 
-</div>
 
+    while(numbers.length < total){
 
+        let number =
+        Math.floor(Math.random()*(max-min+1))+min;
 
 
+        if(!numbers.includes(number)){
 
+            numbers.push(number);
 
-<div class="stats">
+        }
 
+    }
 
-<div class="stat">
 
-<h3>Called</h3>
+    return numbers;
 
-<span id="calledCount">
+}
 
-0
 
-</span>
 
-</div>
 
 
+window.createCard=function(){
 
 
-<div class="stat">
+    if(!card){
 
-<h3>Remaining</h3>
+        return;
 
-<span id="remainingCount">
+    }
 
-75
 
-</span>
+    card.innerHTML="";
 
-</div>
+    myCard=[];
 
 
-</div>
 
+    let columns=[
 
+        randomNumbers(1,15,5),
+        randomNumbers(16,30,5),
+        randomNumbers(31,45,5),
+        randomNumbers(46,60,5),
+        randomNumbers(61,75,5)
 
+    ];
 
 
 
 
-<div class="controls">
+    for(let row=0;row<5;row++){
 
 
+        let cardRow=[];
 
-<button onclick="callNumber()">
 
-🎱 CALL NEXT NUMBER
 
-</button>
+        for(let col=0;col<5;col++){
 
 
+            let square =
+            document.createElement("div");
 
 
-<button onclick="resetGame()">
+            square.className="number";
 
-🔄 RESET GAME
 
-</button>
 
+            if(row===2 && col===2){
 
 
-</div>
+                square.innerHTML="FREE";
 
+                square.classList.add("free");
 
+                cardRow.push("FREE");
 
 
+            }
+            else{
 
 
+                let value =
+                columns[col][row];
 
-<div class="game-status">
 
+                square.innerHTML=value;
 
-<h2>
 
-Game Status
+                cardRow.push(value);
 
-</h2>
 
 
-<div id="gameStatus">
+                square.onclick=function(){
 
-Waiting for players...
+                    square.classList.toggle("selected");
 
-</div>
+                };
 
 
-</div>
+            }
 
 
+            card.appendChild(square);
 
 
+        }
 
 
+        myCard.push(cardRow);
 
-<div class="last-call">
 
+    }
 
-<h2>
 
-Last Calls
 
-</h2>
+    localStorage.setItem(
+        "playerCard",
+        JSON.stringify(myCard)
+    );
 
 
-<div id="lastCalls">
 
-</div>
+}
 
 
-</div>
 
 
+createCard();
 
 
 
 
 
-<div class="all-called">
 
 
-<h2>
+// ==========================
+// PLAYER NAME
+// ==========================
 
-All Called Numbers
 
-</h2>
+window.saveName=function(){
 
 
-<div id="calledNumbers">
+    let input =
+    document.getElementById("playerName");
 
-</div>
 
 
-</div>
+    if(input.value.trim()==""){
 
+        alert("Please enter your name");
 
+        return;
 
+    }
 
 
 
-</div>
+    playerName=input.value;
 
 
 
+    localStorage.setItem(
+        "playerName",
+        playerName
+    );
 
-<script type="module" src="script.js"></script>
 
 
-</body>
+    alert(
+        "Welcome "+playerName
+    );
 
-</html>
+
+}
+
+
+
+
+
+
+
+// ==========================
+// BINGO CHECK
+// ==========================
+
+
+window.claimBingo=function(){
+
+
+
+    if(gameLocked){
+
+        alert("Game already won!");
+
+        return;
+
+    }
+
+
+
+
+    let selected =
+    document.querySelectorAll(".selected");
+
+
+
+    let marked=[];
+
+
+
+    selected.forEach(item=>{
+
+        marked.push(
+            Number(item.innerHTML)
+        );
+
+    });
+
+
+
+
+
+    let win=false;
+
+
+
+
+    // ROW CHECK
+
+    for(let r=0;r<5;r++){
+
+
+        let complete=true;
+
+
+        for(let c=0;c<5;c++){
+
+
+            let value=myCard[r][c];
+
+
+            if(value!="FREE" &&
+            !marked.includes(Number(value))){
+
+                complete=false;
+
+            }
+
+
+        }
+
+
+        if(complete){
+
+            win=true;
+
+        }
+
+    }
+
+
+
+
+
+    // COLUMN CHECK
+
+    for(let c=0;c<5;c++){
+
+
+        let complete=true;
+
+
+        for(let r=0;r<5;r++){
+
+
+            let value=myCard[r][c];
+
+
+            if(value!="FREE" &&
+            !marked.includes(Number(value))){
+
+                complete=false;
+
+            }
+
+
+        }
+
+
+
+        if(complete){
+
+            win=true;
+
+        }
+
+
+    }
+
+
+
+
+
+    if(!win){
+
+
+        alert(
+        "Sorry, that is not Bingo!"
+        );
+
+
+        return;
+
+    }
+
+
+
+
+    let winner =
+    playerName ||
+    "Unknown Player";
+
+
+
+
+
+    set(gameRef,{
+
+        winner:winner,
+
+        winnerTime:Date.now(),
+
+        locked:true
+
+    });
+
+
+
+}
+
+
+
+
+
+
+
+
+// ==========================
+// HOST NUMBER CALLER
+// ==========================
+
+
+window.callNumber=function(){
+
+
+
+    if(gameLocked){
+
+        return;
+
+    }
+
+
+
+    let number =
+    Math.floor(Math.random()*75)+1;
+
+
+
+    let letter;
+
+
+
+    if(number<=15) letter="B";
+
+    else if(number<=30) letter="I";
+
+    else if(number<=45) letter="N";
+
+    else if(number<=60) letter="G";
+
+    else letter="O";
+
+
+
+    let call =
+    letter+" "+number;
+
+
+
+
+    set(gameRef,{
+
+        currentCall:call
+
+    });
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ==========================
+// FIREBASE LISTENER
+// ==========================
+
+
+onValue(gameRef,(snapshot)=>{
+
+
+    let data=snapshot.val();
+
+
+
+    if(!data){
+
+        return;
+
+    }
+
+
+
+
+
+    if(data.currentCall){
+
+
+        let current =
+        document.getElementById("currentNumber");
+
+
+        if(current){
+
+            current.innerHTML=
+            data.currentCall;
+
+        }
+
+
+
+        let player =
+        document.getElementById("playerCurrent");
+
+
+        if(player){
+
+            player.innerHTML=
+            data.currentCall;
+
+        }
+
+
+    }
+
+
+
+
+
+
+    if(data.winner){
+
+
+
+        gameLocked=true;
+
+
+
+        let popups =
+        document.querySelectorAll(
+        ".winner-popup"
+        );
+
+
+
+        popups.forEach(p=>{
+
+
+            p.innerHTML=
+
+            "🎉 BINGO WINNER 🎉<br><br>"
+            +data.winner
+            +" has won!";
+
+
+            p.style.display="block";
+
+
+        });
+
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+
+
+
+// ==========================
+// RESET
+// ==========================
+
+
+window.resetGame=function(){
+
+
+
+    gameLocked=false;
+
+
+
+    set(gameRef,{
+
+        currentCall:"--",
+
+        winner:null,
+
+        locked:false
+
+    });
+
+
+
+    document.querySelectorAll(
+    ".winner-popup"
+    )
+    .forEach(p=>{
+
+        p.innerHTML="";
+
+        p.style.display="none";
+
+    });
+
+
+
+}
