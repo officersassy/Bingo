@@ -1,19 +1,15 @@
 // ==========================
-// BINGO PLAYER SYSTEM V2
+// BINGO PLAYER SYSTEM V3
 // ==========================
 
 import { database } from "./firebase.js";
 
 import {
-
     ref,
     get,
     onValue,
     set
-
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-
 
 
 
@@ -21,11 +17,9 @@ let playerID =
 localStorage.getItem("bingoPlayer");
 
 
-
 let myCard = [];
 
-
-
+let calledNumber = null;
 
 
 
@@ -41,10 +35,10 @@ document.getElementById("welcomePlayer");
 
 
 
-// ==========================
-// LOAD PLAYER CARD
-// ==========================
 
+// ==========================
+// LOAD PLAYER
+// ==========================
 
 async function loadPlayer(){
 
@@ -52,53 +46,37 @@ async function loadPlayer(){
     if(!playerID){
 
 
-        alert("No player found. Please join first.");
-
         window.location.href="join.html";
 
         return;
-
 
     }
 
 
 
-
-    let playerRef =
+    const playerRef =
     ref(database,"bingo/players/"+playerID);
 
 
 
-
-
-    let snapshot =
+    const snapshot =
     await get(playerRef);
-
-
-
 
 
 
     if(!snapshot.exists()){
 
 
-        alert("Player not found.");
-
         window.location.href="join.html";
 
         return;
-
 
     }
 
 
 
-
-
-
-    let player =
+    const player =
     snapshot.val();
-
 
 
 
@@ -107,22 +85,16 @@ async function loadPlayer(){
 
 
 
-
-
     if(welcome){
-
 
         welcome.innerHTML =
         "Welcome " + player.name;
-
 
     }
 
 
 
-
     displayCard();
-
 
 
 }
@@ -139,7 +111,6 @@ async function loadPlayer(){
 // DISPLAY CARD
 // ==========================
 
-
 function displayCard(){
 
 
@@ -147,14 +118,13 @@ function displayCard(){
 
 
 
-
-    myCard.forEach(row=>{
-
-
-        row.forEach(number=>{
+    myCard.forEach((row)=>{
 
 
-            let square =
+        row.forEach((number)=>{
+
+
+            const square =
             document.createElement("div");
 
 
@@ -178,8 +148,12 @@ function displayCard(){
 
             }
 
-            else {
 
+
+
+
+
+            else{
 
 
                 square.onclick=function(){
@@ -197,6 +171,22 @@ function displayCard(){
 
 
 
+
+            // CHECK CALLED NUMBER
+
+            if(
+                number === calledNumber
+            ){
+
+
+                square.classList.add("called");
+
+
+            }
+
+
+
+
             cardArea.appendChild(square);
 
 
@@ -205,7 +195,6 @@ function displayCard(){
 
 
     });
-
 
 
 }
@@ -219,9 +208,8 @@ function displayCard(){
 
 
 // ==========================
-// CURRENT NUMBER
+// CURRENT CALL
 // ==========================
-
 
 const currentRef =
 ref(database,"bingo/currentCall");
@@ -233,9 +221,8 @@ ref(database,"bingo/currentCall");
 onValue(currentRef,(snapshot)=>{
 
 
-    let data =
+    const data =
     snapshot.val();
-
 
 
 
@@ -245,7 +232,7 @@ onValue(currentRef,(snapshot)=>{
 
 
 
-    let display =
+    const display =
     document.getElementById("playerCurrent");
 
 
@@ -255,6 +242,21 @@ onValue(currentRef,(snapshot)=>{
 
         display.innerHTML =
         data.call;
+
+
+    }
+
+
+
+
+    if(data.number){
+
+
+        calledNumber =
+        data.number;
+
+
+        displayCard();
 
 
     }
@@ -272,9 +274,8 @@ onValue(currentRef,(snapshot)=>{
 
 
 // ==========================
-// BINGO CLAIM
+// BINGO BUTTON
 // ==========================
-
 
 window.claimBingo=function(){
 
@@ -283,8 +284,8 @@ window.claimBingo=function(){
 
 
 
-
-    document.querySelectorAll(".selected")
+    document
+    .querySelectorAll(".selected")
     .forEach(square=>{
 
 
@@ -298,41 +299,30 @@ window.claimBingo=function(){
 
 
 
-
-    let won =
-    checkBingo(marked);
+    if(checkBingo(marked)){
 
 
+        set(
+        ref(database,"bingo/winner"),
+        {
 
+            name:playerID,
 
+            time:Date.now()
 
-    if(!won){
+        });
 
-
-        alert("❌ Not a Bingo");
-
-        return;
 
 
     }
 
+    else{
 
 
+        alert("❌ Not Bingo");
 
 
-
-
-    set(
-        ref(database,"bingo/winner"),
-        {
-
-            name: playerID,
-
-            time: Date.now()
-
-        }
-
-    );
+    }
 
 
 
@@ -349,13 +339,13 @@ window.claimBingo=function(){
 function checkBingo(marked){
 
 
-    // rows
+
+    // ROWS
 
     for(let r=0;r<5;r++){
 
 
         let complete=true;
-
 
 
         for(let c=0;c<5;c++){
@@ -379,7 +369,6 @@ function checkBingo(marked){
             }
 
 
-
         }
 
 
@@ -394,13 +383,12 @@ function checkBingo(marked){
 
 
 
-    // columns
+    // COLUMNS
 
     for(let c=0;c<5;c++){
 
 
         let complete=true;
-
 
 
         for(let r=0;r<5;r++){
@@ -440,8 +428,6 @@ function checkBingo(marked){
 
 
 }
-
-
 
 
 
