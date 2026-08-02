@@ -205,13 +205,7 @@ a {
 
 .card {
 
-    display:grid;
-
-    grid-template-columns:repeat(5,70px);
-
-    gap:10px;
-
-    grid-column:1 / span 5;
+    display:contents;
 
 }
 
