@@ -2,56 +2,27 @@
    BINGO MAIN STYLE
 ========================== */
 
-
 * {
-
     box-sizing: border-box;
-
     font-family: Arial, Helvetica, sans-serif;
-
 }
-
 
 
 body {
-
     margin: 0;
-
     min-height: 100vh;
-
     color: white;
-
     overflow-x: hidden;
-
 }
-
-
-
-/* ==========================
-   BACKGROUND
-========================== */
 
 
 .background {
-
     position: fixed;
-
     width: 100%;
-
     height: 100%;
-
-    background:
-    linear-gradient(
-        135deg,
-        #111827,
-        #1f2937
-    );
-
+    background: linear-gradient(135deg,#111827,#1f2937);
     z-index: -1;
-
 }
-
-
 
 
 
@@ -59,54 +30,35 @@ body {
    CONTAINERS
 ========================== */
 
-
 .main-container,
 .player-container,
 .host-container {
 
+    width:90%;
+    max-width:900px;
+    margin:40px auto;
+    text-align:center;
 
-    width: 90%;
+    background:rgba(255,255,255,0.08);
 
-    max-width: 900px;
+    padding:30px;
 
-    margin: 40px auto;
+    border-radius:20px;
 
-    text-align: center;
-
-    background:
-
-    rgba(255,255,255,0.08);
-
-    padding: 30px;
-
-    border-radius: 20px;
-
-    backdrop-filter: blur(10px);
+    backdrop-filter:blur(10px);
 
 }
-
-
 
 
 
 h1 {
-
-    font-size: 40px;
-
-    margin-bottom: 20px;
-
+    font-size:40px;
 }
-
-
 
 
 h2 {
-
-    margin-top: 15px;
-
+    margin-top:15px;
 }
-
-
 
 
 
@@ -114,41 +66,32 @@ h2 {
    BUTTONS
 ========================== */
 
-
 button {
 
+    padding:15px 25px;
 
-    padding: 15px 25px;
+    margin:10px;
 
-    margin: 10px;
+    border:none;
 
-    border: none;
+    border-radius:12px;
 
-    border-radius: 12px;
+    font-size:18px;
 
-    font-size: 18px;
+    cursor:pointer;
 
-    cursor: pointer;
-
-    background: #2563eb;
+    background:#2563eb;
 
     color:white;
 
-
 }
-
 
 
 button:hover {
 
-
-    transform: scale(1.05);
+    transform:scale(1.05);
 
 }
-
-
-
-
 
 
 
@@ -156,27 +99,19 @@ button:hover {
    INPUTS
 ========================== */
 
-
 input {
 
+    padding:15px;
 
-    padding: 15px;
+    font-size:18px;
 
-    font-size: 18px;
-
-    border-radius: 10px;
+    border-radius:10px;
 
     border:none;
 
     width:250px;
 
-
 }
-
-
-
-
-
 
 
 
@@ -187,23 +122,37 @@ input {
 
 .bingo {
 
-    width: 350px;
+    width:350px;
 
     margin:30px auto;
 
 }
 
 
+/* BINGO LETTER ROW */
 
-.bingo .header {
+.bingo-headers {
 
     display:grid;
 
     grid-template-columns:repeat(5,1fr);
 
+    gap:5px;
+
     width:100%;
 
+}
+
+
+.header {
+
     height:50px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
 
     background:#dc2626;
 
@@ -213,28 +162,14 @@ input {
 
     font-weight:bold;
 
-    align-items:center;
-
-    justify-items:center;
+    border-radius:8px;
 
 }
-
-
-/* Header letters */
-
-.header {
-
-    text-align:center;
-
-}
-
-
 
 
 
 
 .card {
-
 
     display:grid;
 
@@ -242,17 +177,12 @@ input {
 
     gap:5px;
 
-
 }
 
 
 
 
-
-
-
 .number {
-
 
     height:60px;
 
@@ -262,7 +192,6 @@ input {
 
     align-items:center;
 
-
     background:white;
 
     color:#111827;
@@ -271,24 +200,17 @@ input {
 
     font-weight:bold;
 
-
     border-radius:8px;
 
     cursor:pointer;
 
-
     transition:0.2s;
-
 
 }
 
 
 
-
-
-
 .number:hover {
-
 
     transform:scale(1.05);
 
@@ -296,20 +218,13 @@ input {
 
 
 
-
-
 .free {
-
 
     background:#9ca3af;
 
     color:white;
 
-
 }
-
-
-
 
 
 
@@ -321,19 +236,13 @@ input {
 
 .called {
 
-
     background:#ffd966 !important;
 
     color:#222 !important;
 
-    border:
-
-    3px solid #e6b800;
-
+    border:3px solid #e6b800;
 
 }
-
-
 
 
 
@@ -346,33 +255,24 @@ input {
 
 .selected {
 
-
     background:#4a90e2 !important;
 
     color:white !important;
 
-    border:
-
-    3px solid #1c5fa8;
-
+    border:3px solid #1c5fa8;
 
 }
 
 
 
 
-
-
-
-
 /* ==========================
-   CURRENT NUMBER DISPLAY
+   CURRENT NUMBER
 ========================== */
 
 
 #playerCurrent,
 #currentNumber {
-
 
     font-size:50px;
 
@@ -380,13 +280,7 @@ input {
 
     margin:20px;
 
-
 }
-
-
-
-
-
 
 
 
@@ -397,10 +291,7 @@ input {
 
 .host-box {
 
-
-    background:
-
-    rgba(255,255,255,0.1);
+    background:rgba(255,255,255,0.1);
 
     padding:20px;
 
@@ -408,15 +299,12 @@ input {
 
     border-radius:15px;
 
-
 }
-
 
 
 
 #playerList div,
 .called {
-
 
     margin:8px;
 
@@ -424,12 +312,7 @@ input {
 
     border-radius:8px;
 
-
 }
-
-
-
-
 
 
 
@@ -441,7 +324,6 @@ input {
 
 .winner-popup {
 
-
     display:none;
 
     position:fixed;
@@ -450,33 +332,21 @@ input {
 
     left:50%;
 
-
-    transform:
-
-    translate(-50%,-50%);
-
+    transform:translate(-50%,-50%);
 
     background:#16a34a;
 
     color:white;
 
-
     padding:50px;
 
     border-radius:25px;
-
 
     font-size:40px;
 
     z-index:9999;
 
-
 }
-
-
-
-
-
 
 
 
@@ -512,6 +382,5 @@ input {
         font-size:30px;
 
     }
-
 
 }
