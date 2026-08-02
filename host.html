@@ -1,68 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Bingo Host</title>
+<title>Bingo Host Control</title>
 
 <link rel="stylesheet" href="style.css">
-
 </head>
-
 
 <body>
 
 <div class="background"></div>
 
+<div class="host-panel">
 
-<div class="container">
+<h1>🎱 BINGO CONTROL</h1>
 
-<h1>🎤 Host Control</h1>
+<div class="current-panel">
 
-<p>Bingo Event Manager</p>
+<h3>CURRENT CALL</h3>
 
+<div id="currentNumber">--</div>
 
-<div class="current-box">
+</div>
 
-<h2>Current Number</h2>
+<div class="stats">
 
-<div id="currentNumber">
---
+<div class="stat-box">
+
+<h4>Called</h4>
+
+<span id="calledCount">0</span>
+
+</div>
+
+<div class="stat-box">
+
+<h4>Remaining</h4>
+
+<span id="remainingCount">75</span>
+
 </div>
 
 </div>
 
+<div class="controls">
 
 <button onclick="callNumber()">
-Call Next Number
+🎲 CALL NEXT NUMBER
 </button>
-
 
 <button onclick="resetGame()">
-Reset Game
+🔄 RESET GAME
 </button>
 
-
-
-<h2 class="called-title">
-Numbers Called
-</h2>
-
-
-<div id="calledNumbers">
-
 </div>
 
+<h2>Called Numbers</h2>
+
+<div id="calledNumbers"></div>
 
 </div>
-
 
 <script src="script.js"></script>
 
-
 </body>
-
 </html>
