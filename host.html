@@ -25,33 +25,50 @@
 
 
 
-<h1>🎤 BINGO HOST CONTROL</h1>
+<h1>🎤 BINGO HOST 🎱</h1>
 
 
 
 
 
-<!-- WINNER POPUP -->
-
-<div id="winnerPopup" class="winner-popup">
+<div class="host-box">
 
 
-    <div class="winner-box">
+<h2>Status</h2>
+
+<div id="gameStatus">
+
+Waiting
+
+</div>
 
 
-        <div id="winnerText">
-
-        </div>
+</div>
 
 
-        <button onclick="closeWinner()">
-
-            ❌ CLOSE
-
-        </button>
 
 
-    </div>
+
+
+<div class="host-box">
+
+
+<h2>Players Joined</h2>
+
+
+<h1 id="playerCount">
+
+0
+
+</h1>
+
+
+
+<div id="playerList">
+
+No players yet
+
+</div>
 
 
 </div>
@@ -62,10 +79,11 @@
 
 
 
-<div class="current-card">
+
+<div class="host-box">
 
 
-<h3>CURRENT CALL</h3>
+<h2>Current Number</h2>
 
 
 <div id="currentNumber">
@@ -83,84 +101,47 @@
 
 
 
-<div class="stats">
 
 
-<div class="stat">
+<div class="host-buttons">
 
-<h3>Called</h3>
 
-<span id="calledCount">
+<button onclick="openJoining()">
 
-0
+🟢 Open Joining
 
-</span>
-
-</div>
+</button>
 
 
 
 
-<div class="stat">
+<button onclick="startGame()">
 
-<h3>Remaining</h3>
+🔴 Start Game
 
-<span id="remainingCount">
-
-75
-
-</span>
-
-</div>
-
-
-</div>
+</button>
 
 
 
-
-
-
-
-<div class="controls">
 
 
 <button onclick="callNumber()">
 
-🎱 CALL NEXT NUMBER
+🎱 Call Number
 
 </button>
+
+
 
 
 
 <button onclick="resetGame()">
 
-🔄 RESET GAME
+♻ Reset Game
 
 </button>
 
 
-</div>
-
-
-
-
-
-
-
-
-<div class="game-status">
-
-
-<h2>Status</h2>
-
-
-<div id="gameStatus">
-
-Waiting...
-
-</div>
-
 
 </div>
 
@@ -170,29 +151,12 @@ Waiting...
 
 
 
-<div class="last-call">
 
 
-<h2>Last 5 Calls</h2>
+<div class="host-box">
 
 
-<div id="lastCalls">
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-
-<div class="all-called">
-
-
-<h2>All Called Numbers</h2>
+<h2>Called Numbers</h2>
 
 
 <div id="calledNumbers">
@@ -206,8 +170,9 @@ Waiting...
 
 
 
-
 </div>
+
+
 
 
 
@@ -217,6 +182,5 @@ Waiting...
 
 
 </body>
-
 
 </html>
