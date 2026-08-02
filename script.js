@@ -498,3 +498,20 @@ function resetGame(){
 
 
 }
+// ==========================
+// PLAYER CURRENT CALL DISPLAY
+// ==========================
+
+
+const savedCall = localStorage.getItem("currentBingoCall");
+
+
+const playerDisplay =
+document.getElementById("playerCurrent");
+
+
+if(playerDisplay && savedCall){
+
+    playerDisplay.innerHTML = savedCall;
+
+}
