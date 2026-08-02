@@ -16,21 +16,42 @@
 
 <body>
 
-
 <div class="background"></div>
-
 
 
 <div class="player-container">
 
 
+<h1>🎟 PLAYER BINGO</h1>
 
-<h1>🎟 PLAYER CARD</h1>
+
+<div id="winnerPopup" class="winner-popup">
+
+</div>
+
+
+
+<div class="player-name-box">
+
+<input 
+id="playerName"
+placeholder="Enter your name"
+>
+
+
+<button onclick="saveName()">
+
+Join Game
+
+</button>
+
+
+</div>
+
 
 
 
 <div class="player-call">
-
 
 <p>
 Current Number
@@ -38,9 +59,7 @@ Current Number
 
 
 <div id="playerCurrent">
-
 --
-
 </div>
 
 
@@ -53,37 +72,15 @@ Current Number
 <div class="bingo">
 
 
-<div class="header">
-B
-</div>
-
-
-<div class="header">
-I
-</div>
-
-
-<div class="header">
-N
-</div>
-
-
-<div class="header">
-G
-</div>
-
-
-<div class="header">
-O
-</div>
+<div class="header">B</div>
+<div class="header">I</div>
+<div class="header">N</div>
+<div class="header">G</div>
+<div class="header">O</div>
 
 
 
-
-<div class="card" id="card">
-
-</div>
-
+<div class="card" id="card"></div>
 
 
 </div>
@@ -100,8 +97,7 @@ O
 
 
 
-
-<button onclick="alert('BINGO CLAIM SENT!')">
+<button onclick="claimBingo()">
 
 🎉 BINGO!
 
@@ -110,7 +106,6 @@ O
 
 
 </div>
-
 
 
 
