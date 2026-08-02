@@ -1,7 +1,7 @@
 // ==========================
 // BINGO HOST SYSTEM V2
 // ==========================
-
+alert("HOST JS IS RUNNING");
 import { database } from "./firebase.js";
 
 import {
