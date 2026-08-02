@@ -1,5 +1,5 @@
 // ==========================
-// BINGO PLAYER SYSTEM V5
+// BINGO PLAYER ORIGINAL
 // ==========================
 
 import { database } from "./firebase.js";
@@ -16,15 +16,11 @@ let playerID = localStorage.getItem("bingoPlayer");
 
 let myCard = [];
 
-let calledNumbers = [];
-
-let markedNumbers =
-JSON.parse(localStorage.getItem("bingoMarked")) || [];
-
 
 
 const cardArea =
 document.getElementById("card");
+
 
 const welcome =
 document.getElementById("welcomePlayer");
@@ -32,16 +28,27 @@ document.getElementById("welcomePlayer");
 
 
 
-// LOAD CARD
+// LOAD PLAYER
 
 async function loadPlayer(){
 
 
-    const playerRef =
+    if(!playerID){
+
+        window.location.href="join.html";
+
+        return;
+
+    }
+
+
+
+    let playerRef =
     ref(database,"bingo/players/"+playerID);
 
 
-    const snapshot =
+
+    let snapshot =
     await get(playerRef);
 
 
@@ -49,6 +56,7 @@ async function loadPlayer(){
     if(!snapshot.exists()){
 
         window.location.href="join.html";
+
         return;
 
     }
@@ -74,7 +82,8 @@ async function loadPlayer(){
 
 
 
-    drawCard();
+    displayCard();
+
 
 }
 
@@ -83,13 +92,12 @@ async function loadPlayer(){
 
 
 
-// DRAW CARD
+// DISPLAY CARD
 
-function drawCard(){
+function displayCard(){
 
 
     cardArea.innerHTML="";
-
 
 
     myCard.forEach(row=>{
@@ -102,12 +110,11 @@ function drawCard(){
             document.createElement("div");
 
 
-
             square.className="number";
 
 
-            square.innerHTML=number;
-
+            square.innerHTML =
+            number;
 
 
 
@@ -121,84 +128,23 @@ function drawCard(){
 
 
 
-
-            if(calledNumbers.includes(number)){
-
-
-                square.classList.add("called");
+            else{
 
 
-            }
+                square.onclick=function(){
 
 
+                    square.classList.toggle("selected");
 
 
-            if(markedNumbers.includes(String(number))){
-
-
-                square.classList.add("selected");
+                };
 
 
             }
-
-
-
-
-
-            square.onclick=function(){
-
-
-                if(number==="FREE")
-                return;
-
-
-
-                let value =
-                String(number);
-
-
-
-                if(markedNumbers.includes(value)){
-
-
-                    markedNumbers =
-                    markedNumbers.filter(
-                        n=>n!==value
-                    );
-
-
-                }
-                else{
-
-
-                    markedNumbers.push(value);
-
-
-                }
-
-
-
-                localStorage.setItem(
-
-                    "bingoMarked",
-
-                    JSON.stringify(markedNumbers)
-
-                );
-
-
-
-                drawCard();
-
-
-
-            };
-
 
 
 
             cardArea.appendChild(square);
-
 
 
         });
@@ -214,10 +160,7 @@ function drawCard(){
 
 
 
-
-
-
-// CURRENT NUMBER LISTENER
+// CURRENT NUMBER
 
 onValue(
 ref(database,"bingo/currentCall"),
@@ -226,7 +169,6 @@ ref(database,"bingo/currentCall"),
 
     let data =
     snapshot.val();
-
 
 
     if(!data)
@@ -240,30 +182,13 @@ ref(database,"bingo/currentCall"),
 
     if(display){
 
-        display.innerHTML=data.call;
+        display.innerHTML =
+        data.call;
 
     }
-
-
-
-    if(data.number){
-
-
-        calledNumbers.push(data.number);
-
-
-
-        drawCard();
-
-
-    }
-
 
 
 });
-
-
-
 
 
 
@@ -275,128 +200,9 @@ ref(database,"bingo/currentCall"),
 window.claimBingo=function(){
 
 
-    if(checkBingo()){
-
-
-        set(
-        ref(database,"bingo/winner"),
-        {
-
-            name:playerID,
-
-            time:Date.now()
-
-        });
-
-
-    }
-    else{
-
-
-        alert("❌ Not Bingo");
-
-
-    }
-
+    alert("Bingo checked!");
 
 };
-
-
-
-
-
-
-
-
-
-function checkBingo(){
-
-
-    for(let r=0;r<5;r++){
-
-
-        let win=true;
-
-
-        for(let c=0;c<5;c++){
-
-
-            let value =
-            myCard[r][c];
-
-
-
-            if(
-
-            value!=="FREE" &&
-
-            !markedNumbers.includes(String(value))
-
-            ){
-
-                win=false;
-
-            }
-
-
-        }
-
-
-        if(win)
-        return true;
-
-
-    }
-
-
-
-
-
-    for(let c=0;c<5;c++){
-
-
-        let win=true;
-
-
-
-        for(let r=0;r<5;r++){
-
-
-            let value =
-            myCard[r][c];
-
-
-
-            if(
-
-            value!=="FREE" &&
-
-            !markedNumbers.includes(String(value))
-
-            ){
-
-                win=false;
-
-            }
-
-
-        }
-
-
-
-        if(win)
-        return true;
-
-
-    }
-
-
-
-    return false;
-
-
-}
-
 
 
 
