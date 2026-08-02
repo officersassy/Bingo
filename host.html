@@ -1,626 +1,123 @@
-// ==========================
-// FIREBASE CONNECTION
-// ==========================
+<!DOCTYPE html>
+<html lang="en">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+<head>
 
-import {
-    getDatabase,
-    ref,
-    set,
-    onValue
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+<meta charset="UTF-8">
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-// ==========================
-// FIREBASE CONFIG
-// ==========================
+<title>Bingo Host</title>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDme5iZZNPN0O128vw0MP9aGjLZXD3oKy8",
-  authDomain: "bingo-5174e.firebaseapp.com",
-  databaseURL: "https://bingo-5174e-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "bingo-5174e",
-  storageBucket: "bingo-5174e.firebasestorage.app",
-  messagingSenderId: "647984877295",
-  appId: "1:647984877295:web:a74b477fa7d46dc9cc551a"
-};
+<link rel="stylesheet" href="style.css">
 
+</head>
 
 
-const app = initializeApp(firebaseConfig);
+<body>
 
-const database = getDatabase(app);
 
+<div class="background"></div>
 
 
-const gameRef = ref(database,"bingo/game");
+<div class="host-container">
 
 
+<h1>🎤 BINGO HOST CONTROL</h1>
 
 
+<div id="winnerPopup" class="winner-popup"></div>
 
-// ==========================
-// VARIABLES
-// ==========================
 
 
-let myCard = [];
+<div class="current-card">
 
-let playerName = "";
+<h3>CURRENT CALL</h3>
 
-let gameLocked = false;
+<div id="currentNumber">
+--
+</div>
 
+</div>
 
 
 
 
-// ==========================
-// CREATE BINGO CARD
-// ==========================
+<div class="stats">
 
 
-const card = document.getElementById("card");
+<div class="stat">
 
+<h3>Called</h3>
 
+<span id="calledCount">
+0
+</span>
 
-function randomNumbers(min,max,total){
+</div>
 
-    let numbers=[];
 
 
-    while(numbers.length < total){
+<div class="stat">
 
-        let number =
-        Math.floor(Math.random()*(max-min+1))+min;
+<h3>Remaining</h3>
 
+<span id="remainingCount">
+75
+</span>
 
-        if(!numbers.includes(number)){
+</div>
 
-            numbers.push(number);
 
-        }
+</div>
 
-    }
 
 
-    return numbers;
 
-}
+<button onclick="callNumber()">
 
+🎱 CALL NEXT NUMBER
 
+</button>
 
 
 
-window.createCard=function(){
+<button onclick="resetGame()">
 
+🔄 RESET GAME
 
-    if(!card){
+</button>
 
-        return;
 
-    }
 
 
-    card.innerHTML="";
+<div class="game-status">
 
-    myCard=[];
+<h2>Status</h2>
 
+<div id="gameStatus">
+Waiting...
+</div>
 
+</div>
 
-    let columns=[
 
-        randomNumbers(1,15,5),
-        randomNumbers(16,30,5),
-        randomNumbers(31,45,5),
-        randomNumbers(46,60,5),
-        randomNumbers(61,75,5)
 
-    ];
+<div id="lastCalls"></div>
 
 
+<div id="calledNumbers"></div>
 
 
-    for(let row=0;row<5;row++){
 
+</div>
 
-        let cardRow=[];
 
 
 
-        for(let col=0;col<5;col++){
+<script type="module" src="script.js"></script>
 
 
-            let square =
-            document.createElement("div");
+</body>
 
-
-            square.className="number";
-
-
-
-            if(row===2 && col===2){
-
-
-                square.innerHTML="FREE";
-
-                square.classList.add("free");
-
-                cardRow.push("FREE");
-
-
-            }
-            else{
-
-
-                let value =
-                columns[col][row];
-
-
-                square.innerHTML=value;
-
-
-                cardRow.push(value);
-
-
-
-                square.onclick=function(){
-
-                    square.classList.toggle("selected");
-
-                };
-
-
-            }
-
-
-            card.appendChild(square);
-
-
-        }
-
-
-        myCard.push(cardRow);
-
-
-    }
-
-
-
-    localStorage.setItem(
-        "playerCard",
-        JSON.stringify(myCard)
-    );
-
-
-
-}
-
-
-
-
-createCard();
-
-
-
-
-
-
-
-// ==========================
-// PLAYER NAME
-// ==========================
-
-
-window.saveName=function(){
-
-
-    let input =
-    document.getElementById("playerName");
-
-
-
-    if(input.value.trim()==""){
-
-        alert("Please enter your name");
-
-        return;
-
-    }
-
-
-
-    playerName=input.value;
-
-
-
-    localStorage.setItem(
-        "playerName",
-        playerName
-    );
-
-
-
-    alert(
-        "Welcome "+playerName
-    );
-
-
-}
-
-
-
-
-
-
-
-// ==========================
-// BINGO CHECK
-// ==========================
-
-
-window.claimBingo=function(){
-
-
-
-    if(gameLocked){
-
-        alert("Game already won!");
-
-        return;
-
-    }
-
-
-
-
-    let selected =
-    document.querySelectorAll(".selected");
-
-
-
-    let marked=[];
-
-
-
-    selected.forEach(item=>{
-
-        marked.push(
-            Number(item.innerHTML)
-        );
-
-    });
-
-
-
-
-
-    let win=false;
-
-
-
-
-    // ROW CHECK
-
-    for(let r=0;r<5;r++){
-
-
-        let complete=true;
-
-
-        for(let c=0;c<5;c++){
-
-
-            let value=myCard[r][c];
-
-
-            if(value!="FREE" &&
-            !marked.includes(Number(value))){
-
-                complete=false;
-
-            }
-
-
-        }
-
-
-        if(complete){
-
-            win=true;
-
-        }
-
-    }
-
-
-
-
-
-    // COLUMN CHECK
-
-    for(let c=0;c<5;c++){
-
-
-        let complete=true;
-
-
-        for(let r=0;r<5;r++){
-
-
-            let value=myCard[r][c];
-
-
-            if(value!="FREE" &&
-            !marked.includes(Number(value))){
-
-                complete=false;
-
-            }
-
-
-        }
-
-
-
-        if(complete){
-
-            win=true;
-
-        }
-
-
-    }
-
-
-
-
-
-    if(!win){
-
-
-        alert(
-        "Sorry, that is not Bingo!"
-        );
-
-
-        return;
-
-    }
-
-
-
-
-    let winner =
-    playerName ||
-    "Unknown Player";
-
-
-
-
-
-    set(gameRef,{
-
-        winner:winner,
-
-        winnerTime:Date.now(),
-
-        locked:true
-
-    });
-
-
-
-}
-
-
-
-
-
-
-
-
-// ==========================
-// HOST NUMBER CALLER
-// ==========================
-
-
-window.callNumber=function(){
-
-
-
-    if(gameLocked){
-
-        return;
-
-    }
-
-
-
-    let number =
-    Math.floor(Math.random()*75)+1;
-
-
-
-    let letter;
-
-
-
-    if(number<=15) letter="B";
-
-    else if(number<=30) letter="I";
-
-    else if(number<=45) letter="N";
-
-    else if(number<=60) letter="G";
-
-    else letter="O";
-
-
-
-    let call =
-    letter+" "+number;
-
-
-
-
-    set(gameRef,{
-
-        currentCall:call
-
-    });
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ==========================
-// FIREBASE LISTENER
-// ==========================
-
-
-onValue(gameRef,(snapshot)=>{
-
-
-    let data=snapshot.val();
-
-
-
-    if(!data){
-
-        return;
-
-    }
-
-
-
-
-
-    if(data.currentCall){
-
-
-        let current =
-        document.getElementById("currentNumber");
-
-
-        if(current){
-
-            current.innerHTML=
-            data.currentCall;
-
-        }
-
-
-
-        let player =
-        document.getElementById("playerCurrent");
-
-
-        if(player){
-
-            player.innerHTML=
-            data.currentCall;
-
-        }
-
-
-    }
-
-
-
-
-
-
-    if(data.winner){
-
-
-
-        gameLocked=true;
-
-
-
-        let popups =
-        document.querySelectorAll(
-        ".winner-popup"
-        );
-
-
-
-        popups.forEach(p=>{
-
-
-            p.innerHTML=
-
-            "🎉 BINGO WINNER 🎉<br><br>"
-            +data.winner
-            +" has won!";
-
-
-            p.style.display="block";
-
-
-        });
-
-
-
-    }
-
-
-
-});
-
-
-
-
-
-
-
-
-
-// ==========================
-// RESET
-// ==========================
-
-
-window.resetGame=function(){
-
-
-
-    gameLocked=false;
-
-
-
-    set(gameRef,{
-
-        currentCall:"--",
-
-        winner:null,
-
-        locked:false
-
-    });
-
-
-
-    document.querySelectorAll(
-    ".winner-popup"
-    )
-    .forEach(p=>{
-
-        p.innerHTML="";
-
-        p.style.display="none";
-
-    });
-
-
-
-}
+</html>
