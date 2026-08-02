@@ -7,7 +7,6 @@ import { database } from "./firebase.js";
 import {
     ref,
     set,
-    get,
     push,
     onValue,
     remove
@@ -30,6 +29,13 @@ const callsRef =
 ref(database,"bingo/calledNumbers");
 
 
+const playersRef =
+ref(database,"bingo/players");
+
+
+
+
+// VARIABLES
 
 let calledNumbers = [];
 
@@ -39,11 +45,9 @@ let gameLocked = false;
 
 
 
-
 // ==========================
 // LOAD GAME STATUS
 // ==========================
-
 
 onValue(gameRef,(snapshot)=>{
 
@@ -55,7 +59,6 @@ onValue(gameRef,(snapshot)=>{
 
     if(!game)
     return;
-
 
 
 
@@ -71,10 +74,8 @@ onValue(gameRef,(snapshot)=>{
 
     if(status){
 
-
         status.innerHTML =
         game.status || "Waiting";
-
 
     }
 
@@ -93,8 +94,7 @@ onValue(gameRef,(snapshot)=>{
 // LOAD PLAYERS
 // ==========================
 
-
-onValue(ref(database,"bingo/players"),(snapshot)=>{
+onValue(playersRef,(snapshot)=>{
 
 
     let players =
@@ -104,7 +104,6 @@ onValue(ref(database,"bingo/players"),(snapshot)=>{
 
     let list =
     document.getElementById("playerList");
-
 
 
     let count =
@@ -129,7 +128,7 @@ onValue(ref(database,"bingo/players"),(snapshot)=>{
 
 
         if(count)
-        count.innerHTML=0;
+        count.innerHTML="0";
 
 
         return;
@@ -140,35 +139,38 @@ onValue(ref(database,"bingo/players"),(snapshot)=>{
 
 
 
-    let names =
+
+    let playerArray =
     Object.values(players);
 
 
 
 
-    if(count)
-    count.innerHTML =
-    names.length;
+
+    if(count){
+
+        count.innerHTML =
+        playerArray.length;
+
+    }
 
 
 
 
 
-    names.forEach(player=>{
+
+    playerArray.forEach(player=>{
 
 
         let item =
         document.createElement("div");
 
 
-
         item.innerHTML =
         "👤 " + player.name;
 
 
-
         list.appendChild(item);
-
 
 
     });
@@ -189,14 +191,13 @@ onValue(ref(database,"bingo/players"),(snapshot)=>{
 // OPEN JOINING
 // ==========================
 
-
 window.openJoining=function(){
+
 
 
     set(gameRef,{
 
-        status:
-        "Joining Open",
+        status:"Joining Open",
 
         locked:false
 
@@ -213,10 +214,10 @@ window.openJoining=function(){
 
 
 
+
 // ==========================
 // START GAME
 // ==========================
-
 
 window.startGame=function(){
 
@@ -224,8 +225,7 @@ window.startGame=function(){
 
     set(gameRef,{
 
-        status:
-        "Game Started",
+        status:"Game Started",
 
         locked:true
 
@@ -247,22 +247,22 @@ window.startGame=function(){
 // CALL NUMBER
 // ==========================
 
-
 window.callNumber=function(){
+
 
 
     if(!gameLocked){
 
 
-        alert(
-        "Start the game first"
-        );
+        alert("Start the game first");
 
 
         return;
 
 
     }
+
+
 
 
 
@@ -276,7 +276,6 @@ window.callNumber=function(){
 
         number =
         Math.floor(Math.random()*75)+1;
-
 
 
     }
@@ -300,9 +299,14 @@ window.callNumber=function(){
 
 
 
+
+    // CURRENT NUMBER
+
     set(currentRef,{
 
         call:call,
+
+        number:number,
 
         time:Date.now()
 
@@ -312,6 +316,7 @@ window.callNumber=function(){
 
 
 
+    // HISTORY
 
     push(callsRef,call);
 
@@ -360,9 +365,51 @@ function getLetter(number){
 
 
 // ==========================
-// LOAD CALL HISTORY
+// SHOW CURRENT NUMBER
 // ==========================
 
+onValue(currentRef,(snapshot)=>{
+
+
+    let data =
+    snapshot.val();
+
+
+
+    if(!data)
+    return;
+
+
+
+    let display =
+    document.getElementById("currentNumber");
+
+
+
+    if(display){
+
+
+        display.innerHTML =
+        data.call;
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+
+
+
+// ==========================
+// LOAD CALL HISTORY
+// ==========================
 
 onValue(callsRef,(snapshot)=>{
 
@@ -386,7 +433,24 @@ onValue(callsRef,(snapshot)=>{
 
 
 
+    calledNumbers=[];
+
+
+
     if(data){
+
+
+        Object.values(data)
+        .forEach(call=>{
+
+
+            calledNumbers.push(
+                Number(call.split(" ")[1])
+            );
+
+
+        });
+
 
 
         Object.values(data)
@@ -428,20 +492,21 @@ onValue(callsRef,(snapshot)=>{
 // RESET GAME
 // ==========================
 
-
 window.resetGame=function(){
 
 
 
     if(!confirm("Reset Bingo game?"))
+
     return;
+
+
 
 
 
     set(gameRef,{
 
-        status:
-        "Waiting for players",
+        status:"Waiting for players",
 
         locked:false
 
@@ -449,12 +514,17 @@ window.resetGame=function(){
 
 
 
+
+
     remove(callsRef);
 
-    set(currentRef,null);
+
+    remove(currentRef);
 
 
-    set(ref(database,"bingo/winner"),null);
+    remove(ref(database,"bingo/winner"));
+
+
 
 
 
