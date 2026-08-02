@@ -170,6 +170,11 @@ if (remainingCount) remainingCount.textContent = 75 - calledNumbers.length;
 function resetGame() {
 
     calledNumbers = [];
+    const calledCount = document.getElementById("calledCount");
+const remainingCount = document.getElementById("remainingCount");
+
+if (calledCount) calledCount.textContent = "0";
+if (remainingCount) remainingCount.textContent = "75";
 
     const current = document.getElementById("currentNumber");
     if (current) current.textContent = "--";
