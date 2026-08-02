@@ -280,18 +280,20 @@ function callNumber(){
 
 
 
-    let playerCurrent =
-    document.getElementById("playerCurrent");
+// Save current call for player page
+
+localStorage.setItem("currentBingoCall", bingoCall);
 
 
-
-    if(playerCurrent){
-
-
-        playerCurrent.innerHTML=bingoCall;
+let playerCurrent =
+document.getElementById("playerCurrent");
 
 
-    }
+if(playerCurrent){
+
+    playerCurrent.innerHTML=bingoCall;
+
+}
 
 
 
