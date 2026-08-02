@@ -1,5 +1,5 @@
 // ==========================
-// FIREBASE
+// FIREBASE CONNECTION
 // ==========================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -14,8 +14,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 
-
-// YOUR FIREBASE CONFIG
 
 const firebaseConfig = {
   apiKey: "AIzaSyDme5iZZNPN0O128vw0MP9aGjLZXD3oKy8",
@@ -35,19 +33,41 @@ const database = getDatabase(app);
 
 
 
-const gameRef = ref(database,"bingo/game");
+// Main game location
 
-const callsRef = ref(database,"bingo/game/calledNumbers");
+const bingoRef = ref(database,"bingo");
+
+const callsRef = ref(database,"bingo/calledNumbers");
 
 
 
 
-
-let gameLocked=false;
 
 let calledNumbers=[];
 
+let gameLocked=false;
 
+
+
+
+
+// ==========================
+// GET BINGO LETTER
+// ==========================
+
+function getLetter(number){
+
+    if(number<=15) return "B";
+
+    if(number<=30) return "I";
+
+    if(number<=45) return "N";
+
+    if(number<=60) return "G";
+
+    return "O";
+
+}
 
 
 
@@ -63,6 +83,8 @@ window.callNumber=function(){
 
     if(gameLocked){
 
+        alert("Game already won!");
+
         return;
 
     }
@@ -70,6 +92,7 @@ window.callNumber=function(){
 
 
     let number;
+
 
 
     do {
@@ -82,45 +105,39 @@ window.callNumber=function(){
 
 
 
-
     calledNumbers.push(number);
 
 
 
-
-    let letter;
-
-
-    if(number<=15) letter="B";
-    else if(number<=30) letter="I";
-    else if(number<=45) letter="N";
-    else if(number<=60) letter="G";
-    else letter="O";
-
-
-
     let call =
-    letter+" "+number;
+    getLetter(number)+" "+number;
 
 
 
 
-    // save current call
+    // Save current call
 
-    update(gameRef,{
+    set(
+        ref(database,"bingo/currentCall"),
+        {
 
-        currentCall:call
+            call:call,
 
-    });
+            time:Date.now()
+
+        }
+
+    );
 
 
 
 
+    // Save history
 
-    // save history
-
-    push(callsRef,call);
-
+    push(
+        callsRef,
+        call
+    );
 
 
 };
@@ -131,13 +148,14 @@ window.callNumber=function(){
 
 
 
-
 // ==========================
-// FIREBASE LIVE UPDATE
+// CURRENT CALL DISPLAY
 // ==========================
 
 
-onValue(gameRef,(snapshot)=>{
+onValue(
+ref(database,"bingo/currentCall"),
+(snapshot)=>{
 
 
     let data=snapshot.val();
@@ -148,50 +166,27 @@ onValue(gameRef,(snapshot)=>{
 
 
 
-
-    if(data.currentCall){
-
-
-
-        let host =
-        document.getElementById("currentNumber");
+    let host =
+    document.getElementById("currentNumber");
 
 
-        if(host){
+    if(host){
 
-            host.innerHTML =
-            data.currentCall;
-
-        }
-
-
-
-
-
-        let player =
-        document.getElementById("playerCurrent");
-
-
-        if(player){
-
-            player.innerHTML =
-            data.currentCall;
-
-        }
-
+        host.innerHTML=data.call;
 
     }
 
 
 
+    let player =
+    document.getElementById("playerCurrent");
 
 
-    if(data.locked){
+    if(player){
 
-        gameLocked=true;
+        player.innerHTML=data.call;
 
     }
-
 
 
 });
@@ -202,18 +197,17 @@ onValue(gameRef,(snapshot)=>{
 
 
 
-
-
 // ==========================
-// SHOW CALLED NUMBERS
+// CALLED NUMBERS DISPLAY
 // ==========================
 
 
-onValue(callsRef,(snapshot)=>{
+onValue(
+callsRef,
+(snapshot)=>{
 
 
-    let calls =
-    snapshot.val();
+    let data=snapshot.val();
 
 
 
@@ -226,21 +220,11 @@ onValue(callsRef,(snapshot)=>{
 
 
 
-
-    if(!history && !last){
-
-        return;
-
-    }
-
-
-
     if(history){
 
         history.innerHTML="";
 
     }
-
 
 
     if(last){
@@ -251,58 +235,75 @@ onValue(callsRef,(snapshot)=>{
 
 
 
-
-
-    if(calls){
-
-
-
-        let list =
-        Object.values(calls).reverse();
+    if(!data)return;
 
 
 
-        list.forEach((call,index)=>{
-
-
-
-            let box =
-            document.createElement("div");
-
-
-            box.className="called";
-
-
-            box.innerHTML=call;
+    let numbers =
+    Object.values(data).reverse();
 
 
 
 
-            if(history){
-
-                history.appendChild(
-                    box.cloneNode(true)
-                );
-
-            }
+    numbers.forEach((item,index)=>{
 
 
 
-
-            if(last && index < 5){
-
-
-                last.appendChild(
-                    box.cloneNode(true)
-                );
+        let box =
+        document.createElement("div");
 
 
-            }
+        box.className="called";
+
+
+        box.innerHTML=item;
 
 
 
-        });
+        if(history){
 
+            history.appendChild(
+                box.cloneNode(true)
+            );
+
+        }
+
+
+
+        if(last && index < 5){
+
+            last.appendChild(
+                box.cloneNode(true)
+            );
+
+        }
+
+
+    });
+
+
+
+
+
+    let count =
+    document.getElementById("calledCount");
+
+
+    let remaining =
+    document.getElementById("remainingCount");
+
+
+
+    if(count){
+
+        count.innerHTML=numbers.length;
+
+    }
+
+
+    if(remaining){
+
+        remaining.innerHTML=75-numbers.length;
 
     }
 
@@ -310,6 +311,59 @@ onValue(callsRef,(snapshot)=>{
 
 });
 
+
+
+
+
+
+
+
+// ==========================
+// WINNER LISTENER
+// ==========================
+
+
+onValue(
+ref(database,"bingo/winner"),
+(snapshot)=>{
+
+
+    let winner=snapshot.val();
+
+
+
+    if(!winner){
+
+        return;
+
+    }
+
+
+
+    gameLocked=true;
+
+
+
+    document.querySelectorAll(".winner-popup")
+    .forEach(p=>{
+
+
+        p.style.display="block";
+
+
+        p.innerHTML=
+
+        "🎉 BINGO WINNER 🎉<br><br>"
+        +
+        winner
+        +
+        " has won!";
+
+
+    });
+
+
+});
 
 
 
@@ -327,23 +381,29 @@ onValue(callsRef,(snapshot)=>{
 window.resetGame=function(){
 
 
-    set(gameRef,{
 
-        currentCall:"--",
+    set(
+        bingoRef,
+        {
 
-        winner:null,
+            currentCall:null,
 
-        locked:false,
+            calledNumbers:null,
 
-        calledNumbers:null
+            winner:null,
 
-    });
+            locked:false
+
+        }
+
+    );
 
 
+
+    calledNumbers=[];
 
     gameLocked=false;
 
-    calledNumbers=[];
 
 
 };
