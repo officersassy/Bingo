@@ -2,73 +2,72 @@
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
 
-<meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Bingo</title>
 
-<title>Join Bingo</title>
-
-<link rel="stylesheet" href="style.css">
-
+    <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
+    <div class="background"></div>
 
-<div class="background"></div>
+    <main class="join-container">
 
+        <h1>🎟️ JOIN BINGO</h1>
 
+        <p>
+            Enter your name to receive a locked Bingo card for this game.
+        </p>
 
-<div class="player-container">
+        <section class="join-box">
 
+            <h2>Player Name</h2>
 
-<h1>🎱 JOIN BINGO 🎱</h1>
+            <input
+                id="playerName"
+                type="text"
+                maxlength="24"
+                autocomplete="off"
+                placeholder="Enter your name"
+            >
 
+            <div class="action-buttons">
 
+                <button
+                    id="joinButton"
+                    type="button"
+                    onclick="joinGame()"
+                >
+                    🎱 Join Game
+                </button>
 
-<h2>Enter your name</h2>
+                <a href="index.html">
+                    <button type="button">
+                        ← Back
+                    </button>
+                </a>
 
+            </div>
 
+            <div id="joinStatus"></div>
 
-<input 
-    id="playerName"
-    type="text"
-    placeholder="Your name"
->
+        </section>
 
+        <p class="helper-text">
+            Player names must be unique. Once joined, your Bingo card will be saved and locked for the current game.
+        </p>
 
+    </main>
 
-<br><br>
-
-
-
-<button onclick="joinGame()">
-
-    🎟️ JOIN GAME
-
-</button>
-
-
-
-
-<div id="joinStatus">
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-<script type="module" src="join.js"></script>
-
+    <script type="module" src="./join.js"></script>
 
 </body>
-
 
 </html>
