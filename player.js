@@ -1,5 +1,6 @@
 // ======================================
-// BINGO V2 — PLAYER SYSTEM + CONFETTI
+// BINGO V2 — PLAYER SYSTEM
+// New cards and cleared dabs on restart
 // ======================================
 
 import { database } from "./firebase.js";
@@ -44,7 +45,7 @@ const winnerName =
 
 
 // ======================================
-// GAME DATA
+// PLAYER AND GAME DATA
 // ======================================
 
 let playerData = null;
@@ -54,9 +55,7 @@ let markedNumbers = [];
 
 let gameStatus = "waiting";
 let gameLocked = false;
-
-let confettiRunning = false;
-let lastWinnerTime = null;
+let currentGameId = null;
 
 
 // ======================================
@@ -64,9 +63,7 @@ let lastWinnerTime = null;
 // ======================================
 
 function showPlayerStatus(message, colour = "") {
-    if (!playerStatus) {
-        return;
-    }
+    if (!playerStatus) return;
 
     playerStatus.textContent = message;
     playerStatus.style.color = colour;
@@ -74,13 +71,11 @@ function showPlayerStatus(message, colour = "") {
 
 
 // ======================================
-// CONVERT FIREBASE DATA TO ARRAYS
+// FIREBASE DATA HELPERS
 // ======================================
 
 function convertCardToArray(cardData) {
-    if (!cardData) {
-        return [];
-    }
+    if (!cardData) return [];
 
     if (Array.isArray(cardData)) {
         return cardData.flat();
@@ -91,25 +86,17 @@ function convertCardToArray(cardData) {
 
 
 function convertMarksToArray(markedData) {
-    if (!markedData) {
-        return [];
-    }
+    if (!markedData) return [];
 
-    if (Array.isArray(markedData)) {
-        return markedData
-            .map(Number)
-            .filter(Number.isFinite);
-    }
+    const values = Array.isArray(markedData)
+        ? markedData
+        : Object.values(markedData);
 
-    return Object.values(markedData)
+    return values
         .map(Number)
         .filter(Number.isFinite);
 }
 
-
-// ======================================
-// READ CALLED NUMBER
-// ======================================
 
 function getNumberFromCall(callData) {
     if (typeof callData === "number") {
@@ -118,7 +105,6 @@ function getNumberFromCall(callData) {
 
     if (typeof callData === "string") {
         const result = callData.match(/\d+/);
-
         return result ? Number(result[0]) : null;
     }
 
@@ -129,7 +115,6 @@ function getNumberFromCall(callData) {
 
         if (typeof callData.call === "string") {
             const result = callData.call.match(/\d+/);
-
             return result ? Number(result[0]) : null;
         }
     }
@@ -139,58 +124,107 @@ function getNumberFromCall(callData) {
 
 
 // ======================================
-// LOAD PLAYER
+// CHECK PLAYER EXISTS
 // ======================================
 
-async function loadPlayer() {
+async function checkPlayerExists() {
     if (!playerId) {
         window.location.href = "join.html";
-        return;
+        return false;
     }
 
-    showPlayerStatus("Loading your locked Bingo card...");
-
     try {
-        const playerSnapshot = await get(
+        const snapshot = await get(
             ref(database, `bingo/players/${playerId}`)
         );
 
-        if (!playerSnapshot.exists()) {
+        if (!snapshot.exists()) {
             localStorage.removeItem("bingoPlayerId");
             localStorage.removeItem("bingoPlayer");
+            localStorage.removeItem("bingoPlayerName");
+            localStorage.removeItem("bingoGameId");
 
             window.location.href = "join.html";
-            return;
+            return false;
         }
 
-        playerData = playerSnapshot.val();
-
-        bingoCard =
-            convertCardToArray(playerData.card);
-
-        markedNumbers =
-            convertMarksToArray(playerData.marked);
-
-        if (bingoCard.length !== 25) {
-            throw new Error("Saved Bingo card is invalid.");
-        }
-
-        if (welcomePlayer) {
-            welcomePlayer.textContent =
-                `Welcome, ${playerData.name || playerId}`;
-        }
-
-        drawCard();
-        updateStatusMessage();
+        return true;
 
     } catch (error) {
-        console.error("Unable to load player:", error);
+        console.error("Unable to find player:", error);
 
         showPlayerStatus(
-            "Your Bingo card could not be loaded.",
+            "Unable to connect to your player card.",
             "#fca5a5"
         );
+
+        return false;
     }
+}
+
+
+// ======================================
+// LIVE PLAYER CARD LISTENER
+// ======================================
+
+function startPlayerListener() {
+    onValue(
+        ref(database, `bingo/players/${playerId}`),
+        (snapshot) => {
+            if (!snapshot.exists()) {
+                window.location.href = "join.html";
+                return;
+            }
+
+            const previousGameId =
+                currentGameId;
+
+            playerData = snapshot.val();
+
+            bingoCard =
+                convertCardToArray(playerData.card);
+
+            markedNumbers =
+                convertMarksToArray(playerData.marked);
+
+            currentGameId =
+                playerData.gameId || null;
+
+            if (bingoCard.length !== 25) {
+                showPlayerStatus(
+                    "Your saved Bingo card is invalid.",
+                    "#fca5a5"
+                );
+
+                return;
+            }
+
+            if (welcomePlayer) {
+                welcomePlayer.textContent =
+                    `Welcome, ${playerData.name || playerId}`;
+            }
+
+            if (
+                previousGameId &&
+                currentGameId &&
+                previousGameId !== currentGameId
+            ) {
+                showPlayerStatus(
+                    "A new game has started. You have received a fresh Bingo card!",
+                    "#86efac"
+                );
+            } else {
+                updateStatusMessage();
+            }
+
+            localStorage.setItem(
+                "bingoGameId",
+                currentGameId || ""
+            );
+
+            drawCard();
+        }
+    );
 }
 
 
@@ -199,7 +233,10 @@ async function loadPlayer() {
 // ======================================
 
 function drawCard() {
-    if (!cardArea || bingoCard.length !== 25) {
+    if (
+        !cardArea ||
+        bingoCard.length !== 25
+    ) {
         return;
     }
 
@@ -258,29 +295,37 @@ async function dabNumber(number) {
         return;
     }
 
-    if (markedNumbers.includes(number)) {
+    const wasMarked =
+        markedNumbers.includes(number);
+
+    if (wasMarked) {
         markedNumbers =
             markedNumbers.filter(
-                (markedNumber) => markedNumber !== number
+                (markedNumber) =>
+                    markedNumber !== number
             );
     } else {
         markedNumbers.push(number);
     }
 
     markedNumbers.sort((a, b) => a - b);
-
     drawCard();
 
     try {
         await set(
-            ref(database, `bingo/players/${playerId}/marked`),
-            markedNumbers
+            ref(
+                database,
+                `bingo/players/${playerId}/marked`
+            ),
+            markedNumbers.length > 0
+                ? markedNumbers
+                : null
         );
 
         showPlayerStatus(
-            markedNumbers.includes(number)
-                ? `${number} has been dabbed.`
-                : `${number} has been undabbed.`,
+            wasMarked
+                ? `${number} has been undabbed.`
+                : `${number} has been dabbed.`,
             "#bfdbfe"
         );
 
@@ -320,18 +365,22 @@ onValue(
         if (playerCurrent) {
             playerCurrent.textContent = callText;
 
-            playerCurrent.classList.remove("number-pop");
+            playerCurrent.classList.remove(
+                "number-pop"
+            );
 
             void playerCurrent.offsetWidth;
 
-            playerCurrent.classList.add("number-pop");
+            playerCurrent.classList.add(
+                "number-pop"
+            );
         }
     }
 );
 
 
 // ======================================
-// ALL CALLED NUMBERS
+// CALLED NUMBERS
 // ======================================
 
 onValue(
@@ -342,17 +391,18 @@ onValue(
         calledNumbers = [];
 
         if (calls) {
-            Object.values(calls).forEach((callData) => {
-                const number =
-                    getNumberFromCall(callData);
+            Object.values(calls)
+                .forEach((callData) => {
+                    const number =
+                        getNumberFromCall(callData);
 
-                if (
-                    number !== null &&
-                    !calledNumbers.includes(number)
-                ) {
-                    calledNumbers.push(number);
-                }
-            });
+                    if (
+                        number !== null &&
+                        !calledNumbers.includes(number)
+                    ) {
+                        calledNumbers.push(number);
+                    }
+                });
         }
 
         drawCard();
@@ -381,9 +431,7 @@ onValue(
 
 
 function updateStatusMessage() {
-    if (!playerData) {
-        return;
-    }
+    if (!playerData) return;
 
     if (gameStatus === "winner") {
         showPlayerStatus(
@@ -461,7 +509,9 @@ function hasValidBingo() {
         [4, 8, 12, 16, 20]
     ];
 
-    return winningLines.some(lineIsComplete);
+    return winningLines.some(
+        lineIsComplete
+    );
 }
 
 
@@ -472,9 +522,7 @@ function hasValidBingo() {
 window.claimBingo =
     async function claimBingo() {
 
-        if (!playerData) {
-            return;
-        }
+        if (!playerData) return;
 
         if (gameStatus !== "playing") {
             showPlayerStatus(
@@ -525,11 +573,18 @@ window.claimBingo =
                 ref(database, "bingo/winner"),
                 {
                     playerId,
+
                     name:
                         playerData.name || playerId,
+
                     card: bingoCard,
+
                     marked: markedNumbers,
+
+                    gameId: currentGameId,
+
                     claimedAt: Date.now(),
+
                     verified: true
                 }
             );
@@ -567,235 +622,6 @@ window.claimBingo =
 
 
 // ======================================
-// CONFETTI CANNONS
-// ======================================
-
-function startConfettiCannons() {
-    if (confettiRunning) {
-        return;
-    }
-
-    confettiRunning = true;
-
-    const canvas =
-        document.createElement("canvas");
-
-    canvas.id = "confettiCanvas";
-
-    canvas.style.position = "fixed";
-    canvas.style.inset = "0";
-    canvas.style.width = "100%";
-    canvas.style.height = "100%";
-    canvas.style.pointerEvents = "none";
-    canvas.style.zIndex = "20000";
-
-    document.body.appendChild(canvas);
-
-    const context =
-        canvas.getContext("2d");
-
-    const resizeCanvas = () => {
-        canvas.width =
-            window.innerWidth * window.devicePixelRatio;
-
-        canvas.height =
-            window.innerHeight * window.devicePixelRatio;
-
-        context.setTransform(
-            window.devicePixelRatio,
-            0,
-            0,
-            window.devicePixelRatio,
-            0,
-            0
-        );
-    };
-
-    resizeCanvas();
-
-    window.addEventListener(
-        "resize",
-        resizeCanvas
-    );
-
-    const colours = [
-        "#facc15",
-        "#38bdf8",
-        "#2563eb",
-        "#22c55e",
-        "#ef4444",
-        "#a855f7",
-        "#ffffff"
-    ];
-
-    const pieces = [];
-
-    function fireCannon(side) {
-        const startX =
-            side === "left"
-                ? 0
-                : window.innerWidth;
-
-        const direction =
-            side === "left"
-                ? 1
-                : -1;
-
-        for (let index = 0; index < 110; index += 1) {
-            pieces.push({
-                x: startX,
-                y:
-                    window.innerHeight *
-                    (0.65 + Math.random() * 0.25),
-
-                velocityX:
-                    direction *
-                    (5 + Math.random() * 11),
-
-                velocityY:
-                    -(8 + Math.random() * 14),
-
-                gravity:
-                    0.22 + Math.random() * 0.09,
-
-                rotation:
-                    Math.random() * Math.PI * 2,
-
-                rotationSpeed:
-                    (Math.random() - 0.5) * 0.35,
-
-                width:
-                    7 + Math.random() * 8,
-
-                height:
-                    4 + Math.random() * 7,
-
-                colour:
-                    colours[
-                        Math.floor(
-                            Math.random() *
-                            colours.length
-                        )
-                    ],
-
-                life: 1
-            });
-        }
-    }
-
-    fireCannon("left");
-    fireCannon("right");
-
-    window.setTimeout(() => {
-        fireCannon("left");
-        fireCannon("right");
-    }, 650);
-
-    window.setTimeout(() => {
-        fireCannon("left");
-        fireCannon("right");
-    }, 1300);
-
-    const startTime =
-        performance.now();
-
-    function animateConfetti(currentTime) {
-        context.clearRect(
-            0,
-            0,
-            window.innerWidth,
-            window.innerHeight
-        );
-
-        pieces.forEach((piece) => {
-            piece.velocityY += piece.gravity;
-
-            piece.x += piece.velocityX;
-            piece.y += piece.velocityY;
-
-            piece.velocityX *= 0.993;
-
-            piece.rotation +=
-                piece.rotationSpeed;
-
-            if (
-                currentTime - startTime >
-                4300
-            ) {
-                piece.life -= 0.018;
-            }
-
-            context.save();
-
-            context.globalAlpha =
-                Math.max(piece.life, 0);
-
-            context.translate(
-                piece.x,
-                piece.y
-            );
-
-            context.rotate(
-                piece.rotation
-            );
-
-            context.fillStyle =
-                piece.colour;
-
-            context.fillRect(
-                -piece.width / 2,
-                -piece.height / 2,
-                piece.width,
-                piece.height
-            );
-
-            context.restore();
-        });
-
-        for (
-            let index = pieces.length - 1;
-            index >= 0;
-            index -= 1
-        ) {
-            const piece = pieces[index];
-
-            if (
-                piece.y >
-                window.innerHeight + 100 ||
-                piece.life <= 0
-            ) {
-                pieces.splice(index, 1);
-            }
-        }
-
-        if (
-            pieces.length > 0 &&
-            currentTime - startTime < 7000
-        ) {
-            requestAnimationFrame(
-                animateConfetti
-            );
-
-            return;
-        }
-
-        window.removeEventListener(
-            "resize",
-            resizeCanvas
-        );
-
-        canvas.remove();
-
-        confettiRunning = false;
-    }
-
-    requestAnimationFrame(
-        animateConfetti
-    );
-}
-
-
-// ======================================
 // WINNER POPUP
 // ======================================
 
@@ -806,7 +632,6 @@ onValue(
 
         if (!winner) {
             winnerPopup?.classList.remove("show");
-            lastWinnerTime = null;
             return;
         }
 
@@ -816,15 +641,6 @@ onValue(
         }
 
         winnerPopup?.classList.add("show");
-
-        const winnerTime =
-            winner.claimedAt || winner.time || 0;
-
-        if (winnerTime !== lastWinnerTime) {
-            lastWinnerTime = winnerTime;
-
-            startConfettiCannons();
-        }
     }
 );
 
@@ -836,7 +652,17 @@ window.closeWinnerPopup =
 
 
 // ======================================
-// START
+// START PLAYER PAGE
 // ======================================
 
-loadPlayer();
+async function startPlayerPage() {
+    const exists =
+        await checkPlayerExists();
+
+    if (exists) {
+        startPlayerListener();
+    }
+}
+
+
+startPlayerPage();
