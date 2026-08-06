@@ -2,184 +2,155 @@
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
 
-<meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Host</title>
 
-<title>Bingo Host</title>
-
-<link rel="stylesheet" href="style.css">
-
+    <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
+    <div class="background"></div>
 
-<div class="background"></div>
+    <main class="host-container">
 
+        <h1>🎤 BINGO HOST</h1>
 
+        <div id="gameStatus" class="status-pill">
+            Loading game...
+        </div>
 
-<div class="host-container">
+        <section class="host-grid">
 
+            <div class="host-box">
 
+                <h2>Current Number</h2>
 
-<h1>🎤 BINGO HOST 🎱</h1>
+                <div id="currentNumber">
+                    --
+                </div>
 
+            </div>
 
+            <div class="host-box">
 
+                <h2>Players Joined</h2>
 
+                <span id="playerCount">
+                    0
+                </span>
 
-<div class="host-box">
+                <div id="playerList">
+                    No players have joined yet.
+                </div>
 
+            </div>
 
-<h2>Status</h2>
+        </section>
 
-<div id="gameStatus">
+        <div class="host-buttons">
 
-Waiting
+            <button
+                id="openJoiningButton"
+                type="button"
+                onclick="openJoining()"
+            >
+                🟢 Open Joining
+            </button>
 
-</div>
+            <button
+                id="startGameButton"
+                class="success"
+                type="button"
+                onclick="startGame()"
+            >
+                ▶️ Start Game
+            </button>
 
+            <button
+                id="callNumberButton"
+                type="button"
+                onclick="callNumber()"
+            >
+                🎱 Call Next Number
+            </button>
 
-</div>
+            <button
+                id="resetGameButton"
+                class="danger"
+                type="button"
+                onclick="resetGame()"
+            >
+                🔄 Force Restart
+            </button>
 
+        </div>
 
+        <section class="host-box">
 
+            <h2>Last 10 Calls</h2>
 
+            <div id="lastCalls"></div>
 
+        </section>
 
-<div class="host-box">
+        <section class="host-box">
 
+            <h2>All Called Numbers</h2>
 
-<h2>Players Joined</h2>
+            <div id="calledNumbers"></div>
 
+        </section>
 
-<h1 id="playerCount">
+        <p class="helper-text">
+            Open joining before players enter. Start Game locks new joining.
+            Force Restart clears players, cards, called numbers and any winner.
+        </p>
 
-0
+    </main>
 
-</h1>
+    <div id="winnerPopup" class="winner-popup">
 
+        <div class="winner-box">
 
+            <div class="winner-title">
+                🎉 BINGO WINNER 🎉
+            </div>
 
-<div id="playerList">
+            <div id="winnerName" class="winner-name">
+                We have a winner!
+            </div>
 
-No players yet
+            <div class="action-buttons">
 
-</div>
+                <button
+                    type="button"
+                    onclick="closeWinnerPopup()"
+                >
+                    Close Popup
+                </button>
 
+                <button
+                    class="danger"
+                    type="button"
+                    onclick="resetGame()"
+                >
+                    🔄 Start New Game
+                </button>
 
-</div>
+            </div>
 
+        </div>
 
+    </div>
 
-
-
-
-
-
-<div class="host-box">
-
-
-<h2>Current Number</h2>
-
-
-<div id="currentNumber">
-
---
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<div class="host-buttons">
-
-
-<button onclick="openJoining()">
-
-🟢 Open Joining
-
-</button>
-
-
-
-
-<button onclick="startGame()">
-
-🔴 Start Game
-
-</button>
-
-
-
-
-
-<button onclick="callNumber()">
-
-🎱 Call Number
-
-</button>
-
-
-
-
-
-<button onclick="resetGame()">
-
-♻ Reset Game
-
-</button>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<div class="host-box">
-
-
-<h2>Called Numbers</h2>
-
-
-<div id="calledNumbers">
-
-</div>
-
-
-</div>
-
-
-
-
-
-</div>
-
-
-
-
-
-
-
-<script type="module" src="host.js"></script>
-
+    <script type="module" src="./host.js"></script>
 
 </body>
 
