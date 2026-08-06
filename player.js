@@ -1,5 +1,5 @@
 // ======================================
-// BINGO V2 — PLAYER SYSTEM
+// BINGO V2 — PLAYER SYSTEM + CONFETTI
 // ======================================
 
 import { database } from "./firebase.js";
@@ -54,6 +54,9 @@ let markedNumbers = [];
 
 let gameStatus = "waiting";
 let gameLocked = false;
+
+let confettiRunning = false;
+let lastWinnerTime = null;
 
 
 // ======================================
@@ -266,7 +269,6 @@ async function dabNumber(number) {
 
     markedNumbers.sort((a, b) => a - b);
 
-    // Redraw immediately so the colour changes without waiting.
     drawCard();
 
     try {
@@ -443,21 +445,18 @@ function hasValidBingo() {
     }
 
     const winningLines = [
-        // Rows
         [0, 1, 2, 3, 4],
         [5, 6, 7, 8, 9],
         [10, 11, 12, 13, 14],
         [15, 16, 17, 18, 19],
         [20, 21, 22, 23, 24],
 
-        // Columns
         [0, 5, 10, 15, 20],
         [1, 6, 11, 16, 21],
         [2, 7, 12, 17, 22],
         [3, 8, 13, 18, 23],
         [4, 9, 14, 19, 24],
 
-        // Diagonals
         [0, 6, 12, 18, 24],
         [4, 8, 12, 16, 20]
     ];
@@ -568,6 +567,235 @@ window.claimBingo =
 
 
 // ======================================
+// CONFETTI CANNONS
+// ======================================
+
+function startConfettiCannons() {
+    if (confettiRunning) {
+        return;
+    }
+
+    confettiRunning = true;
+
+    const canvas =
+        document.createElement("canvas");
+
+    canvas.id = "confettiCanvas";
+
+    canvas.style.position = "fixed";
+    canvas.style.inset = "0";
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    canvas.style.pointerEvents = "none";
+    canvas.style.zIndex = "20000";
+
+    document.body.appendChild(canvas);
+
+    const context =
+        canvas.getContext("2d");
+
+    const resizeCanvas = () => {
+        canvas.width =
+            window.innerWidth * window.devicePixelRatio;
+
+        canvas.height =
+            window.innerHeight * window.devicePixelRatio;
+
+        context.setTransform(
+            window.devicePixelRatio,
+            0,
+            0,
+            window.devicePixelRatio,
+            0,
+            0
+        );
+    };
+
+    resizeCanvas();
+
+    window.addEventListener(
+        "resize",
+        resizeCanvas
+    );
+
+    const colours = [
+        "#facc15",
+        "#38bdf8",
+        "#2563eb",
+        "#22c55e",
+        "#ef4444",
+        "#a855f7",
+        "#ffffff"
+    ];
+
+    const pieces = [];
+
+    function fireCannon(side) {
+        const startX =
+            side === "left"
+                ? 0
+                : window.innerWidth;
+
+        const direction =
+            side === "left"
+                ? 1
+                : -1;
+
+        for (let index = 0; index < 110; index += 1) {
+            pieces.push({
+                x: startX,
+                y:
+                    window.innerHeight *
+                    (0.65 + Math.random() * 0.25),
+
+                velocityX:
+                    direction *
+                    (5 + Math.random() * 11),
+
+                velocityY:
+                    -(8 + Math.random() * 14),
+
+                gravity:
+                    0.22 + Math.random() * 0.09,
+
+                rotation:
+                    Math.random() * Math.PI * 2,
+
+                rotationSpeed:
+                    (Math.random() - 0.5) * 0.35,
+
+                width:
+                    7 + Math.random() * 8,
+
+                height:
+                    4 + Math.random() * 7,
+
+                colour:
+                    colours[
+                        Math.floor(
+                            Math.random() *
+                            colours.length
+                        )
+                    ],
+
+                life: 1
+            });
+        }
+    }
+
+    fireCannon("left");
+    fireCannon("right");
+
+    window.setTimeout(() => {
+        fireCannon("left");
+        fireCannon("right");
+    }, 650);
+
+    window.setTimeout(() => {
+        fireCannon("left");
+        fireCannon("right");
+    }, 1300);
+
+    const startTime =
+        performance.now();
+
+    function animateConfetti(currentTime) {
+        context.clearRect(
+            0,
+            0,
+            window.innerWidth,
+            window.innerHeight
+        );
+
+        pieces.forEach((piece) => {
+            piece.velocityY += piece.gravity;
+
+            piece.x += piece.velocityX;
+            piece.y += piece.velocityY;
+
+            piece.velocityX *= 0.993;
+
+            piece.rotation +=
+                piece.rotationSpeed;
+
+            if (
+                currentTime - startTime >
+                4300
+            ) {
+                piece.life -= 0.018;
+            }
+
+            context.save();
+
+            context.globalAlpha =
+                Math.max(piece.life, 0);
+
+            context.translate(
+                piece.x,
+                piece.y
+            );
+
+            context.rotate(
+                piece.rotation
+            );
+
+            context.fillStyle =
+                piece.colour;
+
+            context.fillRect(
+                -piece.width / 2,
+                -piece.height / 2,
+                piece.width,
+                piece.height
+            );
+
+            context.restore();
+        });
+
+        for (
+            let index = pieces.length - 1;
+            index >= 0;
+            index -= 1
+        ) {
+            const piece = pieces[index];
+
+            if (
+                piece.y >
+                window.innerHeight + 100 ||
+                piece.life <= 0
+            ) {
+                pieces.splice(index, 1);
+            }
+        }
+
+        if (
+            pieces.length > 0 &&
+            currentTime - startTime < 7000
+        ) {
+            requestAnimationFrame(
+                animateConfetti
+            );
+
+            return;
+        }
+
+        window.removeEventListener(
+            "resize",
+            resizeCanvas
+        );
+
+        canvas.remove();
+
+        confettiRunning = false;
+    }
+
+    requestAnimationFrame(
+        animateConfetti
+    );
+}
+
+
+// ======================================
 // WINNER POPUP
 // ======================================
 
@@ -578,6 +806,7 @@ onValue(
 
         if (!winner) {
             winnerPopup?.classList.remove("show");
+            lastWinnerTime = null;
             return;
         }
 
@@ -587,6 +816,15 @@ onValue(
         }
 
         winnerPopup?.classList.add("show");
+
+        const winnerTime =
+            winner.claimedAt || winner.time || 0;
+
+        if (winnerTime !== lastWinnerTime) {
+            lastWinnerTime = winnerTime;
+
+            startConfettiCannons();
+        }
     }
 );
 
