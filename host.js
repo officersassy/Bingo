@@ -97,7 +97,7 @@ function create90BallTicket() {
 
     if (!valid || rowCounts.some((count) => count !== 5)) continue;
 
-    const ticket = Array.from({ length: 3 }, () => Array(9).fill(null));
+    const ticket = Array.from({ length: 3 }, () => Array(9).fill("BLANK"));
     for (let column = 0; column < 9; column += 1) {
       const rows = [0, 1, 2].filter((row) => occupied[row][column]);
       const [min, max] = columnRange(column);

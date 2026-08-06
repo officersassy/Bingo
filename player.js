@@ -25,6 +25,86 @@ let gameId = null;
 let lastWinnerKey = null;
 let state = { status: "joining", locked: false, gameMode: "progressive", progressiveStage: "one-line" };
 
+
+function shuffle(values) {
+  const result = [...values];
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+  }
+  return result;
+}
+
+function columnRange(column) {
+  if (column === 0) return [1, 9];
+  if (column === 8) return [80, 90];
+  return [column * 10, column * 10 + 9];
+}
+
+function randomUnique(minimum, maximum, count) {
+  return shuffle(Array.from({ length: maximum - minimum + 1 }, (_, index) => minimum + index))
+    .slice(0, count)
+    .sort((a, b) => a - b);
+}
+
+function create90BallTicket() {
+  for (let attempt = 0; attempt < 5000; attempt += 1) {
+    const columnCounts = Array(9).fill(1);
+    let remaining = 6;
+    while (remaining > 0) {
+      const column = Math.floor(Math.random() * 9);
+      if (columnCounts[column] < 3) {
+        columnCounts[column] += 1;
+        remaining -= 1;
+      }
+    }
+
+    const occupied = Array.from({ length: 3 }, () => Array(9).fill(false));
+    const rowCounts = [0, 0, 0];
+    let valid = true;
+    const order = shuffle(Array.from({ length: 9 }, (_, index) => index))
+      .sort((a, b) => columnCounts[b] - columnCounts[a]);
+
+    for (const column of order) {
+      const count = columnCounts[column];
+      const combinations = count === 3
+        ? [[0, 1, 2]]
+        : count === 2
+          ? shuffle([[0, 1], [0, 2], [1, 2]])
+          : shuffle([[0], [1], [2]]);
+      const choice = combinations.find((combination) =>
+        combination.every((row) => rowCounts[row] < 5)
+      );
+      if (!choice) {
+        valid = false;
+        break;
+      }
+      choice.forEach((row) => {
+        occupied[row][column] = true;
+        rowCounts[row] += 1;
+      });
+    }
+
+    if (!valid || rowCounts.some((count) => count !== 5)) continue;
+
+    const ticket = Array.from({ length: 3 }, () => Array(9).fill("BLANK"));
+    for (let column = 0; column < 9; column += 1) {
+      const rows = [0, 1, 2].filter((row) => occupied[row][column]);
+      const [minimum, maximum] = columnRange(column);
+      const numbers = randomUnique(minimum, maximum, rows.length);
+      rows.forEach((row, index) => {
+        ticket[row][column] = numbers[index];
+      });
+    }
+    return ticket.flat();
+  }
+  throw new Error("Unable to generate a valid 90-ball ticket.");
+}
+
+function isBlank(value) {
+  return value === null || value === undefined || value === "" || value === false || value === 0 || value === "0" || value === "BLANK" || value === "null";
+}
+
 function arrayOf(value) {
   if (!value) return [];
   return Array.isArray(value) ? value.flat() : Object.values(value).flat();
@@ -78,7 +158,7 @@ function drawCard() {
   card.forEach((value) => {
     const square = document.createElement("div");
     square.className = "number";
-    if (value === null || value === "" || value === false) {
+    if (isBlank(value)) {
       square.classList.add("blank");
       square.setAttribute("aria-hidden", "true");
     } else {
@@ -114,7 +194,7 @@ async function dab(number) {
 }
 
 function rowComplete(rowIndex) {
-  const row = card.slice(rowIndex * 9, rowIndex * 9 + 9).filter((value) => value !== null && value !== "" && value !== false);
+  const row = card.slice(rowIndex * 9, rowIndex * 9 + 9).filter((value) => !isBlank(value));
   return row.length === 5 && row.every((value) => marked.includes(Number(value)) && called.includes(Number(value)));
 }
 
@@ -123,7 +203,7 @@ function validWin() {
   const completeRows = [0, 1, 2].filter(rowComplete).length;
   if (target === "two-lines") return completeRows >= 2;
   if (target === "full-house") {
-    const numbers = card.filter((value) => value !== null && value !== "" && value !== false).map(Number);
+    const numbers = card.filter((value) => !isBlank(value)).map(Number);
     return numbers.length === 15 && numbers.every((number) => marked.includes(number) && called.includes(number));
   }
   return completeRows >= 1;
@@ -175,11 +255,21 @@ onValue(ref(database, `bingo/players/${playerId || "missing"}`), (snap) => {
   }
   const oldGameId = gameId;
   player = snap.val();
-  card = arrayOf(player.card).map((value) => value === "null" ? null : value);
+  card = arrayOf(player.card);
   marked = arrayOf(player.marked).map(Number).filter(Number.isFinite);
   gameId = player.gameId || null;
   els.welcome.textContent = `Welcome, ${player.name || playerId}`;
-  if (oldGameId && gameId && oldGameId !== gameId) show("New round: your dabs were cleared and you received a fresh 90-ball ticket!", "success");
+
+  if (card.length !== 27) {
+    const repairedCard = create90BallTicket();
+    card = repairedCard;
+    marked = [];
+    set(ref(database, `bingo/players/${playerId}/card`), repairedCard).catch(console.error);
+    set(ref(database, `bingo/players/${playerId}/marked`), null).catch(console.error);
+    show("Your ticket was repaired automatically. General Sassy has restored order.", "success");
+  } else if (oldGameId && gameId && oldGameId !== gameId) {
+    show("New round: your dabs were cleared and you received a fresh 90-ball ticket!", "success");
+  }
   drawCard();
 });
 
