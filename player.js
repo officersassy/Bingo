@@ -14,7 +14,7 @@ import {
 
 
 // ======================================
-// PLAYER DETAILS
+// PAGE ELEMENTS
 // ======================================
 
 const playerId =
@@ -44,19 +44,20 @@ const winnerName =
 
 
 // ======================================
-// GAME VARIABLES
+// GAME DATA
 // ======================================
 
 let playerData = null;
 let bingoCard = [];
 let calledNumbers = [];
 let markedNumbers = [];
+
 let gameStatus = "waiting";
 let gameLocked = false;
 
 
 // ======================================
-// STATUS DISPLAY
+// STATUS MESSAGE
 // ======================================
 
 function showPlayerStatus(message, colour = "") {
@@ -70,10 +71,10 @@ function showPlayerStatus(message, colour = "") {
 
 
 // ======================================
-// NORMALISE CARD FORMAT
+// CONVERT FIREBASE DATA TO ARRAYS
 // ======================================
 
-function normaliseCard(cardData) {
+function convertCardToArray(cardData) {
     if (!cardData) {
         return [];
     }
@@ -86,39 +87,51 @@ function normaliseCard(cardData) {
 }
 
 
-// ======================================
-// NORMALISE MARKED NUMBERS
-// ======================================
-
-function normaliseMarkedNumbers(markedData) {
+function convertMarksToArray(markedData) {
     if (!markedData) {
         return [];
     }
 
     if (Array.isArray(markedData)) {
-        return markedData.map(Number);
+        return markedData
+            .map(Number)
+            .filter(Number.isFinite);
     }
 
-    return Object.values(markedData).map(Number);
+    return Object.values(markedData)
+        .map(Number)
+        .filter(Number.isFinite);
 }
 
 
 // ======================================
-// READ CALLED NUMBER VALUE
+// READ CALLED NUMBER
 // ======================================
 
-function extractCalledNumber(call) {
-    if (typeof call === "number") {
-        return call;
+function getNumberFromCall(callData) {
+    if (typeof callData === "number") {
+        return callData;
     }
 
-    if (typeof call !== "string") {
-        return null;
+    if (typeof callData === "string") {
+        const result = callData.match(/\d+/);
+
+        return result ? Number(result[0]) : null;
     }
 
-    const match = call.match(/\d+/);
+    if (callData && typeof callData === "object") {
+        if (Number.isFinite(Number(callData.number))) {
+            return Number(callData.number);
+        }
 
-    return match ? Number(match[0]) : null;
+        if (typeof callData.call === "string") {
+            const result = callData.call.match(/\d+/);
+
+            return result ? Number(result[0]) : null;
+        }
+    }
+
+    return null;
 }
 
 
@@ -148,11 +161,15 @@ async function loadPlayer() {
         }
 
         playerData = playerSnapshot.val();
-        bingoCard = normaliseCard(playerData.card);
-        markedNumbers = normaliseMarkedNumbers(playerData.marked);
+
+        bingoCard =
+            convertCardToArray(playerData.card);
+
+        markedNumbers =
+            convertMarksToArray(playerData.marked);
 
         if (bingoCard.length !== 25) {
-            throw new Error("The saved Bingo card is invalid.");
+            throw new Error("Saved Bingo card is invalid.");
         }
 
         if (welcomePlayer) {
@@ -161,13 +178,13 @@ async function loadPlayer() {
         }
 
         drawCard();
-        updatePlayerStatus();
+        updateStatusMessage();
 
     } catch (error) {
         console.error("Unable to load player:", error);
 
         showPlayerStatus(
-            "Your player card could not be loaded.",
+            "Your Bingo card could not be loaded.",
             "#fca5a5"
         );
     }
@@ -175,26 +192,25 @@ async function loadPlayer() {
 
 
 // ======================================
-// DRAW LOCKED CARD
+// DRAW PLAYER CARD
 // ======================================
 
 function drawCard() {
-    if (!cardArea) {
+    if (!cardArea || bingoCard.length !== 25) {
         return;
     }
 
     cardArea.innerHTML = "";
 
     bingoCard.forEach((value) => {
-        const square = document.createElement("button");
+        const square =
+            document.createElement("div");
 
-        square.type = "button";
         square.className = "number";
         square.textContent = value;
 
         if (value === "FREE") {
             square.classList.add("free");
-            square.disabled = true;
         } else {
             const number = Number(value);
 
@@ -207,7 +223,7 @@ function drawCard() {
             }
 
             square.addEventListener("click", () => {
-                toggleMarkedNumber(number);
+                dabNumber(number);
             });
         }
 
@@ -217,10 +233,10 @@ function drawCard() {
 
 
 // ======================================
-// MANUAL DABBING
+// DAB / UNDAB NUMBER
 // ======================================
 
-async function toggleMarkedNumber(number) {
+async function dabNumber(number) {
     if (gameStatus === "winner" || gameLocked) {
         showPlayerStatus(
             "The game is currently locked.",
@@ -241,13 +257,16 @@ async function toggleMarkedNumber(number) {
 
     if (markedNumbers.includes(number)) {
         markedNumbers =
-            markedNumbers.filter((item) => item !== number);
+            markedNumbers.filter(
+                (markedNumber) => markedNumber !== number
+            );
     } else {
         markedNumbers.push(number);
     }
 
     markedNumbers.sort((a, b) => a - b);
 
+    // Redraw immediately so the colour changes without waiting.
     drawCard();
 
     try {
@@ -255,11 +274,19 @@ async function toggleMarkedNumber(number) {
             ref(database, `bingo/players/${playerId}/marked`),
             markedNumbers
         );
-    } catch (error) {
-        console.error("Unable to save marked number:", error);
 
         showPlayerStatus(
-            "Your dab could not be saved. Please try again.",
+            markedNumbers.includes(number)
+                ? `${number} has been dabbed.`
+                : `${number} has been undabbed.`,
+            "#bfdbfe"
+        );
+
+    } catch (error) {
+        console.error("Unable to save dab:", error);
+
+        showPlayerStatus(
+            "Your dab could not be saved.",
             "#fca5a5"
         );
     }
@@ -267,7 +294,7 @@ async function toggleMarkedNumber(number) {
 
 
 // ======================================
-// CURRENT NUMBER LISTENER
+// CURRENT CALL
 // ======================================
 
 onValue(
@@ -302,19 +329,20 @@ onValue(
 
 
 // ======================================
-// CALLED NUMBERS LISTENER
+// ALL CALLED NUMBERS
 // ======================================
 
 onValue(
     ref(database, "bingo/calledNumbers"),
     (snapshot) => {
-        const calledData = snapshot.val();
+        const calls = snapshot.val();
 
         calledNumbers = [];
 
-        if (calledData) {
-            Object.values(calledData).forEach((call) => {
-                const number = extractCalledNumber(call);
+        if (calls) {
+            Object.values(calls).forEach((callData) => {
+                const number =
+                    getNumberFromCall(callData);
 
                 if (
                     number !== null &&
@@ -331,27 +359,26 @@ onValue(
 
 
 // ======================================
-// GAME STATUS LISTENER
+// GAME STATUS
 // ======================================
 
 onValue(
     ref(database, "bingo"),
     (snapshot) => {
-        const gameData = snapshot.val() || {};
+        const game = snapshot.val() || {};
 
-        gameStatus = gameData.status || "waiting";
-        gameLocked = Boolean(gameData.locked);
+        gameStatus =
+            game.status || "waiting";
 
-        updatePlayerStatus();
+        gameLocked =
+            Boolean(game.locked);
+
+        updateStatusMessage();
     }
 );
 
 
-// ======================================
-// PLAYER STATUS MESSAGE
-// ======================================
-
-function updatePlayerStatus() {
+function updateStatusMessage() {
     if (!playerData) {
         return;
     }
@@ -391,25 +418,29 @@ function updatePlayerStatus() {
 
 
 // ======================================
-// CHECK BINGO LINE
+// CHECK FOR BINGO
 // ======================================
 
 function hasValidBingo() {
-    const markedSet = new Set(markedNumbers);
+    const markedSet =
+        new Set(markedNumbers);
 
-    const isComplete = (indexes) => {
+    function lineIsComplete(indexes) {
         return indexes.every((index) => {
             const value = bingoCard[index];
 
+            if (value === "FREE") {
+                return true;
+            }
+
+            const number = Number(value);
+
             return (
-                value === "FREE" ||
-                (
-                    markedSet.has(Number(value)) &&
-                    calledNumbers.includes(Number(value))
-                )
+                markedSet.has(number) &&
+                calledNumbers.includes(number)
             );
         });
-    };
+    }
 
     const winningLines = [
         // Rows
@@ -431,7 +462,7 @@ function hasValidBingo() {
         [4, 8, 12, 16, 20]
     ];
 
-    return winningLines.some(isComplete);
+    return winningLines.some(lineIsComplete);
 }
 
 
@@ -439,99 +470,105 @@ function hasValidBingo() {
 // CLAIM BINGO
 // ======================================
 
-window.claimBingo = async function claimBingo() {
-    if (!playerData) {
-        return;
-    }
+window.claimBingo =
+    async function claimBingo() {
 
-    if (gameStatus !== "playing") {
-        showPlayerStatus(
-            "The game has not started yet.",
-            "#fde68a"
-        );
+        if (!playerData) {
+            return;
+        }
 
-        return;
-    }
-
-    if (gameLocked) {
-        showPlayerStatus(
-            "The game is currently locked.",
-            "#fca5a5"
-        );
-
-        return;
-    }
-
-    if (!hasValidBingo()) {
-        showPlayerStatus(
-            "That is not a valid Bingo yet.",
-            "#fca5a5"
-        );
-
-        return;
-    }
-
-    if (bingoButton) {
-        bingoButton.disabled = true;
-    }
-
-    try {
-        const winnerSnapshot = await get(
-            ref(database, "bingo/winner")
-        );
-
-        if (winnerSnapshot.exists()) {
+        if (gameStatus !== "playing") {
             showPlayerStatus(
-                "A winner has already been submitted.",
+                "The game has not started yet.",
                 "#fde68a"
             );
 
             return;
         }
 
-        await set(
-            ref(database, "bingo/winner"),
-            {
-                playerId,
-                name: playerData.name || playerId,
-                card: bingoCard,
-                marked: markedNumbers,
-                claimedAt: Date.now(),
-                verified: true
-            }
-        );
+        if (gameLocked) {
+            showPlayerStatus(
+                "The game is currently locked.",
+                "#fca5a5"
+            );
 
-        await update(
-            ref(database, "bingo"),
-            {
-                status: "winner",
-                locked: true
-            }
-        );
-
-        showPlayerStatus(
-            "Bingo confirmed!",
-            "#86efac"
-        );
-
-    } catch (error) {
-        console.error("Unable to submit Bingo:", error);
-
-        showPlayerStatus(
-            "Your Bingo claim could not be submitted.",
-            "#fca5a5"
-        );
-
-    } finally {
-        if (bingoButton) {
-            bingoButton.disabled = false;
+            return;
         }
-    }
-};
+
+        if (!hasValidBingo()) {
+            showPlayerStatus(
+                "That is not a valid Bingo yet.",
+                "#fca5a5"
+            );
+
+            return;
+        }
+
+        if (bingoButton) {
+            bingoButton.disabled = true;
+        }
+
+        try {
+            const winnerSnapshot = await get(
+                ref(database, "bingo/winner")
+            );
+
+            if (winnerSnapshot.exists()) {
+                showPlayerStatus(
+                    "A winner has already been submitted.",
+                    "#fde68a"
+                );
+
+                return;
+            }
+
+            await set(
+                ref(database, "bingo/winner"),
+                {
+                    playerId,
+                    name:
+                        playerData.name || playerId,
+                    card: bingoCard,
+                    marked: markedNumbers,
+                    claimedAt: Date.now(),
+                    verified: true
+                }
+            );
+
+            await update(
+                ref(database, "bingo"),
+                {
+                    status: "winner",
+                    locked: true
+                }
+            );
+
+            showPlayerStatus(
+                "Bingo confirmed!",
+                "#86efac"
+            );
+
+        } catch (error) {
+            console.error(
+                "Unable to submit Bingo:",
+                error
+            );
+
+            showPlayerStatus(
+                "Your Bingo claim could not be submitted.",
+                "#fca5a5"
+            );
+
+        } finally {
+            if (bingoButton) {
+                bingoButton.disabled = false;
+            }
+        }
+    };
 
 
 // ======================================
-// WINNER LISTENER
+// WINNER POPUP
 // ======================================
 
 onValue(
@@ -540,7 +577,7 @@ onValue(
         const winner = snapshot.val();
 
         if (!winner) {
-            hideWinnerPopup();
+            winnerPopup?.classList.remove("show");
             return;
         }
 
@@ -554,21 +591,14 @@ onValue(
 );
 
 
-// ======================================
-// WINNER POPUP CONTROLS
-// ======================================
-
-function hideWinnerPopup() {
-    winnerPopup?.classList.remove("show");
-}
-
-window.closeWinnerPopup = function closeWinnerPopup() {
-    hideWinnerPopup();
-};
+window.closeWinnerPopup =
+    function closeWinnerPopup() {
+        winnerPopup?.classList.remove("show");
+    };
 
 
 // ======================================
-// START PLAYER PAGE
+// START
 // ======================================
 
 loadPlayer();
