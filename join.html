@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Join General Sassy’s Bingo</title>
+  <title>Join General Sassy’s 90-Ball Bingo</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="join-page no-page-scroll">
@@ -13,13 +13,21 @@
     <section class="panel">
       <h2>Enter your player name</h2>
       <input id="playerName" type="text" maxlength="24" autocomplete="off" placeholder="Your name">
+
+      <label class="card-count-label" for="cardCount">How many 90-ball tickets?</label>
+      <select id="cardCount" class="mode-select card-count-select">
+        <option value="1">1 Ticket</option>
+        <option value="2">2 Tickets</option>
+        <option value="3">3 Tickets</option>
+      </select>
+
       <div class="action-buttons">
         <button id="joinButton" type="button">🎱 Join Game</button>
         <a class="button-link secondary" href="index.html">← Home</a>
       </div>
       <div id="joinStatus" class="status-text"></div>
     </section>
-    <p class="helper-text">Names must be unique. Your card is saved and locked for the round.</p>
+    <p class="helper-text">Choose up to three locked tickets. Each ticket has 15 numbers across three rows.</p>
   </main>
   <script type="module" src="./join.js"></script>
 </body>

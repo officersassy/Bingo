@@ -30,22 +30,31 @@
     <section class="stats-grid compact-stats" aria-label="Game statistics">
       <article class="stat-card"><span class="stat-label">Players</span><strong id="statPlayers" class="stat-value">0</strong></article>
       <article class="stat-card"><span class="stat-label">Called</span><strong id="statCalled" class="stat-value">0</strong></article>
-      <article class="stat-card"><span class="stat-label">Remaining</span><strong id="statRemaining" class="stat-value">75</strong></article>
+      <article class="stat-card"><span class="stat-label">Remaining</span><strong id="statRemaining" class="stat-value">90</strong></article>
       <article class="stat-card"><span class="stat-label">Elapsed</span><strong id="statElapsed" class="stat-value stat-time">00:00</strong></article>
       <article class="stat-card"><span class="stat-label">Average</span><strong id="statAverage" class="stat-value stat-time">—</strong></article>
       <article class="stat-card accent-stat"><span class="stat-label">Target</span><strong id="statStage" class="stat-value stat-stage">One Line</strong></article>
     </section>
 
     <nav class="host-tabs" aria-label="Host sections">
-      <button type="button" class="host-tab active" data-host-tab="dashboard">🎱 Dashboard</button>
-      <button type="button" class="host-tab" data-host-tab="players">👥 Players</button>
-      <button type="button" class="host-tab" data-host-tab="history">📋 History</button>
+      <button type="button" class="host-tab active" data-host-tab="dashboard">
+        <span class="host-tab-icon">🎱</span>
+        <span class="host-tab-copy"><strong>Control Room</strong><small>Call numbers & run the round</small></span>
+      </button>
+      <button type="button" class="host-tab" data-host-tab="players">
+        <span class="host-tab-icon">👥</span>
+        <span class="host-tab-copy"><strong>Players</strong><small>View or remove recruits</small></span>
+      </button>
+      <button type="button" class="host-tab" data-host-tab="history">
+        <span class="host-tab-icon">📋</span>
+        <span class="host-tab-copy"><strong>Call History</strong><small>Review every number</small></span>
+      </button>
     </nav>
 
     <section class="host-view active" data-host-view="dashboard">
       <div class="dashboard-fit-grid">
         <article class="panel current-panel hero-panel">
-          <div class="panel-heading"><div><span class="panel-kicker">Live ball</span><h2>Current Number</h2></div></div>
+          <div class="panel-heading"><div><span class="panel-kicker">Live ball</span><h2>Current Ball</h2></div></div>
           <div id="currentNumber" class="current-number">--</div>
           <div class="last-call-strip"><span>Previous calls</span><div id="lastCalls" class="called-list compact-calls"></div></div>
         </article>
@@ -56,8 +65,7 @@
             <option value="progressive">Progressive: 1 Line → 2 Lines → Full House</option>
             <option value="one-line">One Line Only</option>
             <option value="two-lines">Two Lines Only</option>
-            <option value="four-corners">Four Corners</option>
-            <option value="full-house">Full House Only</option>
+                        <option value="full-house">Full House Only</option>
           </select>
           <p id="gameModeDescription" class="helper-text"></p>
         </article>
@@ -88,7 +96,7 @@
       <article class="panel history-full-panel">
         <div class="panel-heading">
           <div><span class="panel-kicker">Complete record</span><h2>All Called Numbers</h2></div>
-          <span id="historySummary" class="subtle-label">0 of 75</span>
+          <span id="historySummary" class="subtle-label">0 of 90</span>
         </div>
         <div id="calledNumbers" class="called-list expanded-calls"></div>
       </article>

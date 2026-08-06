@@ -2,30 +2,51 @@ import { database } from "./firebase.js";
 import { ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const nameInput = document.getElementById("playerName");
+const countInput = document.getElementById("cardCount");
 const joinButton = document.getElementById("joinButton");
 const joinStatus = document.getElementById("joinStatus");
 
-function randomNumbers(min, max, count) {
-  const result = [];
-  while (result.length < count) {
-    const n = Math.floor(Math.random() * (max - min + 1)) + min;
-    if (!result.includes(n)) result.push(n);
+const columnRanges = [
+  [1, 9], [10, 19], [20, 29], [30, 39], [40, 49],
+  [50, 59], [60, 69], [70, 79], [80, 90]
+];
+
+function randomUnique(min, max, count) {
+  const values = [];
+  while (values.length < count) {
+    const value = Math.floor(Math.random() * (max - min + 1)) + min;
+    if (!values.includes(value)) values.push(value);
   }
-  return result;
+  return values.sort((a, b) => a - b);
 }
 
-function createCard() {
-  const columns = [
-    randomNumbers(1, 15, 5), randomNumbers(16, 30, 5), randomNumbers(31, 45, 5),
-    randomNumbers(46, 60, 5), randomNumbers(61, 75, 5)
-  ];
-  const card = [];
-  for (let row = 0; row < 5; row += 1) {
-    for (let col = 0; col < 5; col += 1) {
-      card.push(row === 2 && col === 2 ? "FREE" : columns[col][row]);
-    }
+function create90BallTicket() {
+  let rowColumns;
+  do {
+    rowColumns = Array.from({ length: 3 }, () => {
+      const cols = [];
+      while (cols.length < 5) {
+        const col = Math.floor(Math.random() * 9);
+        if (!cols.includes(col)) cols.push(col);
+      }
+      return cols.sort((a, b) => a - b);
+    });
+  } while (!Array.from({ length: 9 }, (_, col) => rowColumns.some((row) => row.includes(col))).every(Boolean));
+
+  const ticket = Array(27).fill("BLANK");
+  for (let col = 0; col < 9; col += 1) {
+    const rows = [0, 1, 2].filter((row) => rowColumns[row].includes(col));
+    const [min, max] = columnRanges[col];
+    const numbers = randomUnique(min, max, rows.length);
+    rows.forEach((row, index) => {
+      ticket[(row * 9) + col] = numbers[index];
+    });
   }
-  return card;
+  return ticket;
+}
+
+function createTickets(count) {
+  return Array.from({ length: count }, () => create90BallTicket());
 }
 
 function makePlayerId(name) {
@@ -33,17 +54,11 @@ function makePlayerId(name) {
 }
 
 const joinQuips = [
-  (name) => `General Sassy has approved ${name}'s enlistment… against his better judgement.`,
-  (name) => `${name}, your card is locked. No swapping it when the numbers get spicy.`,
-  (name) => `Welcome, ${name}. General Sassy is watching, so dab responsibly.`,
-  (name) => `${name} has entered General Sassy's arena. Dignity is optional; luck is not.`,
-  (name) => `Card issued to ${name}. Complaints about the numbers can be directed to absolutely nobody.`,
-  (name) => `General Sassy welcomes ${name}. Try not to shout “Bingo” after one ball.`
+  (name, count) => `General Sassy has issued ${name} ${count} ticket${count === 1 ? "" : "s"}. Try not to waste them.`,
+  (name) => `${name} has joined the 90-ball battlefield. Dignity remains optional.`,
+  (name) => `Welcome, ${name}. General Sassy is watching every dab.`,
+  (name, count) => `${count} ticket${count === 1 ? "" : "s"} secured for ${name}. Complaints go directly in the bin.`
 ];
-
-function randomJoinQuip(name) {
-  return joinQuips[Math.floor(Math.random() * joinQuips.length)](name);
-}
 
 function status(message, type = "normal") {
   joinStatus.textContent = message;
@@ -52,6 +67,7 @@ function status(message, type = "normal") {
 
 async function joinGame() {
   const name = nameInput.value.trim();
+  const cardCount = Math.min(3, Math.max(1, Number(countInput.value) || 1));
   if (name.length < 2) {
     status("Please enter at least 2 characters.", "error");
     return;
@@ -63,26 +79,21 @@ async function joinGame() {
   }
 
   joinButton.disabled = true;
-  status("Checking the game…");
-
+  status("General Sassy is checking the guest list…");
   try {
     const gameSnap = await get(ref(database, "bingo"));
     const game = gameSnap.val() || {};
-    const gameStatus = game.status || "joining";
-    const joiningOpen = game.joiningOpen !== false;
-
-    if (!joiningOpen || gameStatus === "playing" || gameStatus === "winner") {
-      status("Joining is closed. Please speak to the host.", "error");
+    if (game.joiningOpen === false || ["playing", "stage-winner", "winner"].includes(game.status)) {
+      status("Joining is closed. General Sassy has sealed the gates.", "error");
       return;
     }
 
     const playerRef = ref(database, `bingo/players/${playerId}`);
     const existingSnap = await get(playerRef);
     const savedId = localStorage.getItem("bingoPlayerId") || localStorage.getItem("bingoPlayer");
-
     if (existingSnap.exists()) {
       if (savedId !== playerId) {
-        status("That name is already in use. Choose another name.", "error");
+        status("That name is already in use. Pick another identity.", "error");
         return;
       }
       const existing = existingSnap.val();
@@ -90,8 +101,8 @@ async function joinGame() {
       localStorage.setItem("bingoPlayer", playerId);
       localStorage.setItem("bingoPlayerName", existing.name || name);
       localStorage.setItem("bingoGameId", existing.gameId || game.gameId || "");
-      status(`Welcome back, ${existing.name || name}. Your card missed you.`, "success");
-      window.location.href = "player.html";
+      status(`Welcome back, ${existing.name || name}. Your tickets missed you.`, "success");
+      setTimeout(() => { window.location.href = "player.html"; }, 450);
       return;
     }
 
@@ -100,8 +111,9 @@ async function joinGame() {
     await set(playerRef, {
       id: playerId,
       name,
-      card: createCard(),
-      marked: null,
+      cards: createTickets(cardCount),
+      cardCount,
+      markedCards: null,
       gameId,
       locked: true,
       joinedAt: Date.now(),
@@ -112,25 +124,20 @@ async function joinGame() {
     localStorage.setItem("bingoPlayer", playerId);
     localStorage.setItem("bingoPlayerName", name);
     localStorage.setItem("bingoGameId", gameId);
-    const welcomeLine = randomJoinQuip(name);
-    await set(ref(database, "bingo/generalSassy"), {
-      message: welcomeLine,
-      event: "join",
-      time: Date.now()
-    });
+
+    const welcomeLine = joinQuips[Math.floor(Math.random() * joinQuips.length)](name, cardCount);
+    await set(ref(database, "bingo/generalSassy"), { message: welcomeLine, event: "join", time: Date.now() });
     status(welcomeLine, "success");
     setTimeout(() => { window.location.href = "player.html"; }, 650);
   } catch (error) {
     console.error(error);
-    status("Could not join. Please try again.", "error");
+    status("Could not join. General Sassy blames the internet.", "error");
   } finally {
     joinButton.disabled = false;
   }
 }
 
 joinButton.addEventListener("click", joinGame);
-nameInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") joinGame();
-});
+nameInput.addEventListener("keydown", (event) => { if (event.key === "Enter") joinGame(); });
 nameInput.value = localStorage.getItem("bingoPlayerName") || "";
 nameInput.focus();

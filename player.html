@@ -3,18 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>General Sassy’s Bingo — Player</title>
+  <title>General Sassy’s 90-Ball Bingo — Player</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="player-page no-page-scroll">
   <div class="background"></div>
-
-  <main class="app-shell player-shell">
+  <main class="app-shell player-shell ninety-player-shell">
     <header class="player-header">
       <div>
-        <span class="eyebrow">Your live Bingo card</span>
+        <span class="eyebrow">Your live 90-ball tickets</span>
         <h1>🎖️ General Sassy’s Bingo</h1>
-        <h2 id="welcomePlayer" class="welcome-player">Loading your card…</h2>
+        <h2 id="welcomePlayer" class="welcome-player">Loading your tickets…</h2>
       </div>
       <div class="player-header-actions">
         <div id="stageBadge" class="stage-badge">One Line</div>
@@ -26,53 +25,33 @@
 
     <section class="player-sassy-strip" aria-live="polite">
       <span class="sassy-mini-avatar">🎖️</span>
-      <div><strong>General Sassy:</strong> <span id="playerSassyMessage">“Eyes down, dignity optional.”</span></div>
+      <div><strong>General Sassy:</strong> <span id="playerSassyMessage">“Eyes down. Ninety balls, zero excuses.”</span></div>
     </section>
 
-    <section class="player-layout">
-      <article class="current-call-card">
+    <section class="ninety-player-layout">
+      <article class="current-call-card ninety-current-card">
         <span class="panel-kicker">Now calling</span>
         <div id="playerCurrent" class="player-current-number">--</div>
-        <p id="targetInstruction" class="target-instruction">Complete any horizontal line.</p>
+        <p id="targetInstruction" class="target-instruction">Complete any horizontal line on one ticket.</p>
         <div class="player-progress">
-          <div>
-            <span class="progress-label">Numbers called</span>
-            <strong id="playerCalledCount">0</strong>
-          </div>
-          <div>
-            <span class="progress-label">Numbers dabbed</span>
-            <strong id="playerDabbedCount">0</strong>
-          </div>
+          <div><span class="progress-label">Balls called</span><strong id="playerCalledCount">0</strong></div>
+          <div><span class="progress-label">Dabs</span><strong id="playerDabbedCount">0</strong></div>
         </div>
       </article>
 
-      <article class="ticket-panel">
+      <article class="ticket-panel ninety-ticket-panel">
         <div class="ticket-heading">
-          <div>
-            <span class="panel-kicker">Locked ticket</span>
-            <h2>Your Bingo Card</h2>
-          </div>
-          <div class="legend">
-            <span><i class="legend-dot called-dot"></i>Called</span>
-            <span><i class="legend-dot dabbed-dot"></i>Dabbed</span>
-          </div>
+          <div><span class="panel-kicker">Locked tickets</span><h2>Your 90-Ball Tickets</h2></div>
+          <div class="legend"><span><i class="legend-dot called-dot"></i>Called</span><span><i class="legend-dot dabbed-dot"></i>Dabbed</span></div>
         </div>
 
-        <section class="bingo" aria-label="Bingo card">
-          <div class="bingo-headers">
-            <div class="header">B</div>
-            <div class="header">I</div>
-            <div class="header">N</div>
-            <div class="header">G</div>
-            <div class="header">O</div>
-          </div>
-          <div id="card" class="card"></div>
-        </section>
+        <nav id="cardTabs" class="card-tabs" aria-label="Choose ticket"></nav>
+        <div id="cardsContainer" class="cards-container"></div>
 
         <div class="player-actions">
           <button id="bingoButton" class="claim-button" type="button">🏆 Claim Bingo</button>
         </div>
-        <p class="helper-text centered-help">Only called numbers can be dabbed. Gold means called; blue with a tick means dabbed.</p>
+        <p class="helper-text centered-help">A line, two lines, or full house must be completed on one ticket. Tap a called number to dab it.</p>
       </article>
     </section>
   </main>
@@ -85,7 +64,6 @@
       <button id="closeWinnerButton" type="button">Close</button>
     </div>
   </div>
-
   <script type="module" src="./player.js"></script>
 </body>
 </html>

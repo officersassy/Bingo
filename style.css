@@ -944,3 +944,232 @@ button.mini { min-height: 31px; padding: 5px 10px; border-radius: 9px; font-size
   .sassy-title { font-size: .9rem; }
   .player-sassy-strip { min-height: 32px; padding: 5px 8px; }
 }
+
+
+/* ======================================
+   VISIBILITY + HOST NAVIGATION FIX
+====================================== */
+
+/* The player screen contains header, status, General Sassy, and game content. */
+.player-shell {
+  grid-template-rows: auto auto auto minmax(0, 1fr) !important;
+}
+
+.player-sassy-strip {
+  position: relative;
+  z-index: 4;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  overflow: hidden;
+}
+
+.player-sassy-strip > div {
+  min-width: 0;
+}
+
+#playerSassyMessage {
+  display: inline;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.ticket-panel {
+  min-height: 0;
+}
+
+.player-actions {
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 6;
+  padding-top: 4px;
+}
+
+.claim-button {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 28px rgba(124,58,237,.38), 0 0 20px rgba(40,119,255,.22);
+}
+
+/* Clear, card-style host navigation. */
+.host-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.host-tab {
+  min-height: 56px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  text-align: left;
+  border: 1px solid rgba(255,255,255,.11);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(255,255,255,.075), rgba(255,255,255,.035));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 7px 18px rgba(0,0,0,.14);
+}
+
+.host-tab:hover {
+  transform: translateY(-1px);
+  border-color: rgba(116,190,255,.34);
+}
+
+.host-tab.active {
+  background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(40,119,255,.96));
+  border-color: rgba(186,230,253,.46);
+  box-shadow: 0 10px 26px rgba(40,119,255,.32), inset 0 1px 0 rgba(255,255,255,.2);
+}
+
+.host-tab-icon {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  font-size: 1.25rem;
+  background: rgba(3,12,35,.35);
+}
+
+.host-tab-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.host-tab-copy strong {
+  color: #fff;
+  font-size: .9rem;
+}
+
+.host-tab-copy small {
+  margin-top: 3px;
+  color: #b9c9e9;
+  font-size: .66rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.host-tab.active .host-tab-copy small {
+  color: #eaf5ff;
+}
+
+@media (max-width: 760px) {
+  .player-shell {
+    grid-template-rows: auto auto auto minmax(0, 1fr) !important;
+    gap: 4px;
+  }
+
+  .player-sassy-strip {
+    min-height: 34px;
+    padding: 5px 8px;
+    font-size: .72rem;
+  }
+
+  .sassy-mini-avatar {
+    font-size: 1rem;
+  }
+
+  .player-layout {
+    gap: 5px;
+  }
+
+  .ticket-panel {
+    padding-bottom: max(5px, env(safe-area-inset-bottom));
+  }
+
+  .bingo {
+    width: min(94vw, calc(100dvh - 264px), 480px);
+  }
+
+  .claim-button {
+    width: min(100%, 280px);
+    min-height: 38px;
+    font-size: .9rem;
+  }
+
+  .host-tabs {
+    gap: 5px;
+  }
+
+  .host-tab {
+    min-height: 48px;
+    padding: 6px;
+    justify-content: center;
+  }
+
+  .host-tab-icon {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+    font-size: 1rem;
+  }
+
+  .host-tab-copy small {
+    display: none;
+  }
+
+  .host-tab-copy strong {
+    font-size: .72rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .host-tab {
+    flex-direction: column;
+    gap: 3px;
+    min-height: 51px;
+  }
+
+  .host-tab-icon {
+    width: 25px;
+    height: 25px;
+    flex-basis: 25px;
+  }
+
+  .host-tab-copy strong {
+    font-size: .62rem;
+  }
+
+  .player-sassy-strip {
+    font-size: .65rem;
+  }
+
+  .bingo {
+    width: min(95vw, calc(100dvh - 270px), 450px);
+  }
+}
+
+@media (max-height: 650px) {
+  .player-sassy-strip {
+    min-height: 29px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    font-size: .63rem;
+  }
+
+  .bingo {
+    width: min(92vw, calc(100dvh - 235px), 430px);
+  }
+
+  .claim-button {
+    min-height: 32px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+}
+
+/* ======================================
+   90-BALL MULTI-TICKET UPGRADE
+====================================== */
+.card-count-label{display:block;margin:18px 0 8px;font-weight:800;color:#dbeafe}.card-count-select{max-width:260px;margin:0 auto 8px}.ninety-player-shell{overflow:hidden}.ninety-player-layout{display:grid;grid-template-columns:minmax(180px,.34fr) minmax(0,1fr);gap:14px;min-height:0;flex:1}.ninety-current-card{min-height:0}.ninety-ticket-panel{min-height:0;display:flex;flex-direction:column;overflow:hidden}.card-tabs{display:flex;justify-content:center;gap:8px;margin:4px 0 10px;flex-wrap:wrap}.card-tab{min-height:38px;padding:7px 18px;margin:0;border-radius:999px;background:rgba(15,38,78,.85);box-shadow:none}.card-tab.active{background:linear-gradient(135deg,#facc15,#f59e0b);color:#172033;box-shadow:0 0 18px rgba(250,204,21,.35)}.cards-container{min-height:0;display:flex;align-items:center;justify-content:center;flex:1}.ninety-ticket{display:none;grid-template-columns:repeat(9,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:5px;width:min(100%,820px);aspect-ratio:3/1}.ninety-ticket.active{display:grid}.ninety-cell{display:flex;align-items:center;justify-content:center;min-width:0;border-radius:8px;background:linear-gradient(145deg,#fff,#dbeafe);color:#0f172a;font-size:clamp(.86rem,2.2vw,1.35rem);font-weight:950;border:2px solid transparent;cursor:pointer;user-select:none;box-shadow:0 4px 10px rgba(0,0,0,.18)}.ninety-cell.blank{background:rgba(7,25,61,.75);border-color:rgba(125,211,252,.12);cursor:default;box-shadow:inset 0 0 0 1px rgba(255,255,255,.03)}.ninety-cell.called{background:linear-gradient(145deg,#fff3a6,#facc15);border-color:#f59e0b;color:#3d2b00}.ninety-cell.selected{background:linear-gradient(145deg,#0ea5e9,#1d4ed8);border-color:#bae6fd;color:#fff;box-shadow:0 0 18px rgba(14,165,233,.55)}
+@media(min-width:1200px){.ninety-player-layout{grid-template-columns:260px minmax(0,1fr)}.ninety-ticket{max-height:46vh}}
+@media(max-width:800px){.ninety-player-layout{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);gap:8px}.ninety-current-card{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;padding:8px 12px}.ninety-current-card .panel-kicker,.ninety-current-card .target-instruction{display:none}.ninety-current-card .player-current-number{width:72px;height:72px;font-size:2rem;margin:0}.ninety-current-card .player-progress{margin:0}.ninety-ticket-panel{padding:10px}.ninety-ticket{width:100%;aspect-ratio:2.35/1;gap:3px}.ninety-cell{border-radius:5px;border-width:1px;font-size:clamp(.72rem,3.4vw,1rem)}.ticket-heading{margin-bottom:2px}.card-tabs{margin:0 0 6px}.player-actions{margin-top:6px}.centered-help{display:none}}
+@media(max-height:700px) and (max-width:800px){.player-header h1{font-size:1.15rem}.player-sassy-strip{padding:6px 10px}.ninety-current-card .player-current-number{width:58px;height:58px;font-size:1.6rem}.ninety-ticket{aspect-ratio:2.7/1}.claim-button{min-height:40px;padding:8px 16px}}
