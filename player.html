@@ -2,18 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bingo Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>General Sassy’s Bingo — Player</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="player-page">
+<body class="player-page no-page-scroll">
   <div class="background"></div>
 
   <main class="app-shell player-shell">
     <header class="player-header">
       <div>
         <span class="eyebrow">Your live Bingo card</span>
-        <h1>🎱 Bingo Night</h1>
+        <h1>🎖️ General Sassy’s Bingo</h1>
         <h2 id="welcomePlayer" class="welcome-player">Loading your card…</h2>
       </div>
       <div class="player-header-actions">
@@ -23,6 +23,11 @@
     </header>
 
     <div id="playerStatus" class="status-pill full-status">Connecting…</div>
+
+    <section class="player-sassy-strip" aria-live="polite">
+      <span class="sassy-mini-avatar">🎖️</span>
+      <div><strong>General Sassy:</strong> <span id="playerSassyMessage">“Eyes down, dignity optional.”</span></div>
+    </section>
 
     <section class="player-layout">
       <article class="current-call-card">

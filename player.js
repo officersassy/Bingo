@@ -14,7 +14,8 @@ const els = {
   stageBadge: document.getElementById("stageBadge"),
   targetInstruction: document.getElementById("targetInstruction"),
   calledCount: document.getElementById("playerCalledCount"),
-  dabbedCount: document.getElementById("playerDabbedCount")
+  dabbedCount: document.getElementById("playerDabbedCount"),
+  sassy: document.getElementById("playerSassyMessage")
 };
 
 let player = null;
@@ -29,6 +30,18 @@ let state = {
 };
 let gameId = null;
 let lastWinnerKey = null;
+
+const invalidClaimLines = [
+  "General Sassy checked your card. Nice try, recruit.",
+  "That is not Bingo. Bold attempt, though.",
+  "Almost. General Sassy would like to emphasise the word ‘almost’.",
+  "The General's rulebook says: absolutely not yet.",
+  "Enthusiasm: excellent. Winning line: missing."
+];
+
+function pick(lines) {
+  return lines[Math.floor(Math.random() * lines.length)];
+}
 
 function stageName(stage) {
   return ({ "one-line": "One Line", "two-lines": "Two Lines", "full-house": "Full House", "four-corners": "Four Corners" })[stage] || "One Line";
@@ -150,7 +163,7 @@ els.bingo.addEventListener("click", async () => {
     return;
   }
   if (!validWin()) {
-    show(`That is not a valid ${stageName(target)} yet.`, "error");
+    show(`${pick(invalidClaimLines)} You still need ${stageName(target)}.`, "error");
     return;
   }
 
@@ -183,11 +196,34 @@ els.bingo.addEventListener("click", async () => {
   }
 });
 
+onValue(ref(database, `bingo/kickedPlayers/${playerId || "missing"}`), (snap) => {
+  if (!snap.exists()) return;
+  const data = snap.val();
+  const message = data?.message || "General Sassy has relieved you of Bingo duty.";
+  alert(`🎖️ ${message}`);
+  clearStorage();
+  window.location.href = "join.html";
+});
+
+onValue(ref(database, "bingo/generalSassy"), (snap) => {
+  const data = snap.val();
+  if (data?.message && els.sassy) els.sassy.textContent = `“${data.message}”`;
+});
+
 onValue(ref(database, `bingo/players/${playerId || "missing"}`), (snap) => {
   if (!playerId || !snap.exists()) {
-    if (playerId) alert("You have been removed from the game.");
-    clearStorage();
-    window.location.href = "join.html";
+    if (!playerId) {
+      clearStorage();
+      window.location.href = "join.html";
+      return;
+    }
+    window.setTimeout(async () => {
+      const kickSnap = await get(ref(database, `bingo/kickedPlayers/${playerId}`));
+      if (!kickSnap.exists()) {
+        clearStorage();
+        window.location.href = "join.html";
+      }
+    }, 350);
     return;
   }
   const oldGameId = gameId;
@@ -249,6 +285,7 @@ onValue(ref(database, "bingo/winner"), (snap) => {
   const winner = snap.val();
   const wonStage = winner.stage || activeTarget();
   els.winnerName.textContent = `${winner.name || "A player"} has won ${stageName(wonStage)}!`;
+  if (els.sassy) els.sassy.textContent = `“General Sassy confirms the victory. The rest of you may begin composing excuses.”`;
   els.popup.classList.add("show");
 
   const key = `${winner.claimedAt || 0}-${wonStage}`;

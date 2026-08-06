@@ -31,7 +31,8 @@ const els = {
   statElapsed: document.getElementById("statElapsed"),
   statAverage: document.getElementById("statAverage"),
   statStage: document.getElementById("statStage"),
-  historySummary: document.getElementById("historySummary")
+  historySummary: document.getElementById("historySummary"),
+  sassy: document.getElementById("generalSassyMessage")
 };
 
 let state = {
@@ -45,6 +46,65 @@ let calledNumbers = [];
 let callTimes = [];
 let currentWinner = null;
 let startedAt = null;
+let knownPlayerIds = new Set();
+let playerListInitialised = false;
+
+const sassyCallLines = [
+  "Eyes down. General Sassy has entered the numbers into active service.",
+  "No, shouting ‘nearly’ does not count as a tactical update.",
+  "Someone is one number away. Statistically. Emotionally, who knows?",
+  "General Sassy reminds you that luck is not a personality trait.",
+  "Keep dabbing, recruits. Panic is not a recognised Bingo strategy.",
+  "That next number could make a champion—or ruin someone’s evening.",
+  "If your card looks terrible, blame probability. General Sassy is flawless.",
+  "The room is getting tense. General Sassy finds this deeply entertaining."
+];
+
+const sassyRestartLines = [
+  "Fresh campaign declared. New cards, cleared dabs, same questionable luck.",
+  "General Sassy has wiped the battlefield clean. Pretend the last round never happened.",
+  "New cards issued. Complaints have been filed directly into the bin.",
+  "Reset complete. Everyone gets another chance to disappoint probability."
+];
+
+function pick(lines) {
+  return lines[Math.floor(Math.random() * lines.length)];
+}
+
+async function broadcastSassy(message, event = "comment") {
+  if (els.sassy) els.sassy.textContent = `“${message}”`;
+  try {
+    await set(ref(database, "bingo/generalSassy"), {
+      message,
+      event,
+      time: Date.now()
+    });
+  } catch (error) {
+    console.error("General Sassy broadcast failed:", error);
+  }
+}
+
+// Host section tabs keep the dashboard usable without page scrolling.
+const hostTabs = document.querySelectorAll("[data-host-tab]");
+const hostViews = document.querySelectorAll("[data-host-view]");
+
+function openHostView(viewName) {
+  hostTabs.forEach((tab) => {
+    tab.classList.toggle("active", tab.dataset.hostTab === viewName);
+  });
+  hostViews.forEach((view) => {
+    view.classList.toggle("active", view.dataset.hostView === viewName);
+  });
+}
+
+hostTabs.forEach((tab) => {
+  tab.addEventListener("click", () => openHostView(tab.dataset.hostTab));
+});
+
+onValue(ref(database, "bingo/generalSassy"), (snap) => {
+  const data = snap.val();
+  if (data?.message && els.sassy) els.sassy.textContent = `“${data.message}”`;
+});
 
 function randomNumbers(min, max, count) {
   const out = [];
@@ -207,6 +267,18 @@ onValue(bingoRef, (snap) => {
 
 onValue(playersRef, (snap) => {
   const entries = Object.entries(snap.val() || {});
+  const currentIds = new Set(entries.map(([id]) => id));
+  if (playerListInitialised) {
+    const newcomers = entries.filter(([id]) => !knownPlayerIds.has(id));
+    if (newcomers.length === 1) {
+      const newcomer = newcomers[0][1];
+      broadcastSassy(`${newcomer.name || "A fresh recruit"} has joined the ranks. Try to look lucky.`, "join");
+    } else if (newcomers.length > 1) {
+      broadcastSassy(`${newcomers.length} new recruits have arrived. General Sassy is pretending not to be impressed.`, "join");
+    }
+  }
+  knownPlayerIds = currentIds;
+  playerListInitialised = true;
   els.count.textContent = String(entries.length);
   updateStatistics();
   els.list.innerHTML = "";
@@ -226,8 +298,27 @@ onValue(playersRef, (snap) => {
       button.className = "mini danger";
       button.textContent = "Remove";
       button.addEventListener("click", async () => {
-        if (!confirm(`Remove ${player.name || id}?`)) return;
+        const playerName = player.name || id;
+        const warnings = [
+          `Boot ${playerName} from Bingo Night? Their card is about to become ancient history.`,
+          `Send ${playerName} to the naughty corner? This removes their card and dabs.`,
+          `Evict ${playerName}? Harsh… but the host has spoken.`,
+          `Remove ${playerName} from the game? Their Bingo privileges will be dramatically revoked.`
+        ];
+        if (!confirm(warnings[Math.floor(Math.random() * warnings.length)])) return;
+        const kickLines = [
+          `General Sassy has discharged ${playerName} from Bingo duty.`,
+          `${playerName} has been escorted from the battlefield—with dramatic efficiency.`,
+          `General Sassy said “not today,” and ${playerName} is officially out.`,
+          `${playerName}'s Bingo privileges have been revoked by command of General Sassy.`
+        ];
+        const kickMessage = pick(kickLines);
+        await set(ref(database, `bingo/kickedPlayers/${id}`), {
+          message: kickMessage,
+          time: Date.now()
+        });
         await remove(ref(database, `bingo/players/${id}`));
+        await broadcastSassy(kickMessage, "kick");
       });
       row.append(name, button);
       els.list.appendChild(row);
@@ -273,6 +364,9 @@ onValue(winnerRef, (snap) => {
   currentWinner = snap.val();
   const wonStage = currentWinner.stage || currentWinner.gameMode || activeTarget();
   els.winnerName.textContent = `${currentWinner.name || "A player"} has won ${stageName(wonStage)}!`;
+  if (els.sassy) {
+    els.sassy.textContent = `“General Sassy salutes ${currentWinner.name || "the winner"}. Everyone else, regroup.”`;
+  }
 
   const progressiveNotFinished =
     state.gameMode === "progressive" && wonStage !== "full-house";
@@ -293,11 +387,10 @@ els.mode.addEventListener("change", async () => {
   });
 });
 
-els.open.addEventListener("click", () => update(bingoRef, {
-  status: "joining",
-  joiningOpen: true,
-  locked: false
-}));
+els.open.addEventListener("click", async () => {
+  await update(bingoRef, { status: "joining", joiningOpen: true, locked: false });
+  await broadcastSassy("Recruitment is open. Step forward, brave dabbers.", "joining-open");
+});
 
 els.start.addEventListener("click", async () => {
   const players = await get(playersRef);
@@ -313,6 +406,7 @@ els.start.addEventListener("click", async () => {
     progressiveStage: "one-line",
     startedAt: Date.now()
   });
+  await broadcastSassy("Eyes down, recruits. General Sassy is now in command of the balls.", "game-start");
 });
 
 els.call.addEventListener("click", async () => {
@@ -336,6 +430,10 @@ els.call.addEventListener("click", async () => {
   try {
     await set(currentRef, data);
     await push(callsRef, data);
+    const nextCount = calledNumbers.length + 1;
+    if (nextCount === 1 || nextCount % 6 === 0) {
+      await broadcastSassy(pick(sassyCallLines), "call-comment");
+    }
   } finally {
     updateControls();
   }
@@ -354,6 +452,7 @@ async function continueProgressiveGame() {
     progressiveStage: nextStage,
     stageStartedAt: Date.now()
   });
+  await broadcastSassy(`One prize down. General Sassy now demands ${stageName(nextStage)}. Keep dabbing.`, "stage-continue");
   els.popup.classList.remove("show");
 }
 
@@ -385,6 +484,12 @@ async function resetGame() {
       progressiveStage: "one-line",
       createdAt: Date.now(),
       restartTime: Date.now(),
+      generalSassy: {
+        message: pick(sassyRestartLines),
+        event: "restart",
+        time: Date.now()
+      },
+      kickedPlayers: null,
       players: freshPlayers
     });
     els.popup.classList.remove("show");

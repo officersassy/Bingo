@@ -435,3 +435,512 @@ button.mini { min-height: 31px; padding: 5px 10px; border-radius: 9px; font-size
   .player-progress strong { font-size: 1.35rem; }
   .bingo-headers,.card { gap: 3px; }
 }
+
+/* ======================================
+   FIT-SCREEN LAYOUT — NO PAGE OVERLAP
+====================================== */
+
+.no-page-scroll {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.home-page,
+.join-page {
+  display: grid;
+  place-items: center;
+  padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom));
+}
+
+.home-page .main-container,
+.join-page .join-container {
+  width: min(720px, calc(100vw - 16px));
+  max-height: calc(100dvh - 16px);
+  margin: 0;
+  overflow: auto;
+}
+
+.host-shell,
+.player-shell {
+  width: min(1440px, calc(100vw - 12px));
+  height: calc(100dvh - 12px);
+  margin: 6px auto;
+  min-height: 0;
+}
+
+.host-shell {
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  gap: 8px;
+}
+
+.compact-header {
+  padding: 7px 3px 4px;
+}
+
+.compact-header h1 {
+  font-size: clamp(1.55rem, 3vw, 2.7rem);
+}
+
+.compact-header .eyebrow {
+  margin-bottom: 3px;
+}
+
+.compact-stats {
+  margin: 0;
+  gap: 7px;
+}
+
+.compact-stats .stat-card {
+  padding: 8px 10px;
+}
+
+.compact-stats .stat-value {
+  font-size: clamp(1rem, 2vw, 1.55rem);
+}
+
+.host-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.host-tab {
+  min-height: 37px;
+  padding: 7px 10px;
+  margin: 0;
+  background: rgba(255,255,255,.06);
+  box-shadow: none;
+}
+
+.host-tab.active {
+  background: linear-gradient(135deg, #6d3ef5, #2877ff);
+  box-shadow: 0 8px 22px rgba(40,119,255,.28);
+}
+
+.host-view {
+  display: none;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.host-view.active {
+  display: block;
+}
+
+.dashboard-fit-grid {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 1.1fr) minmax(260px, .9fr);
+  grid-template-areas: "hero mode" "hero controls";
+  gap: 8px;
+}
+
+.dashboard-fit-grid .hero-panel { grid-area: hero; min-height: 0; }
+.dashboard-fit-grid .mode-panel { grid-area: mode; min-height: 0; }
+.dashboard-fit-grid .controls-panel { grid-area: controls; min-height: 0; }
+
+.dashboard-fit-grid .panel {
+  padding: 12px;
+}
+
+.dashboard-fit-grid .panel-heading {
+  margin-bottom: 5px;
+}
+
+.dashboard-fit-grid .current-number {
+  width: min(185px, 29vh, 28vw);
+  font-size: clamp(2rem, 5vw, 3.8rem);
+}
+
+.dashboard-fit-grid .hero-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-fit-grid .last-call-strip {
+  margin-top: 5px;
+  padding-top: 7px;
+}
+
+.dashboard-fit-grid .compact-calls {
+  max-height: 48px;
+}
+
+.players-full-panel,
+.history-full-panel {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.expanded-list,
+.expanded-calls {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.expanded-list {
+  max-height: none;
+}
+
+.expanded-calls {
+  align-content: flex-start;
+}
+
+/* Player page fits available height */
+.player-shell {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 7px;
+}
+
+.player-header {
+  padding: 7px 3px 3px;
+}
+
+.player-header h1 {
+  font-size: clamp(1.45rem, 3vw, 2.35rem);
+}
+
+.player-header .eyebrow {
+  margin-bottom: 2px;
+}
+
+.welcome-player {
+  font-size: .9rem;
+  margin-top: 2px;
+}
+
+.player-page .full-status {
+  min-height: 34px;
+  margin: 0;
+  padding: 6px 12px;
+  font-size: .86rem;
+}
+
+.player-layout {
+  min-height: 0;
+  height: 100%;
+  grid-template-columns: minmax(210px, .52fr) minmax(390px, 1.48fr);
+  gap: 8px;
+}
+
+.player-layout > article {
+  min-height: 0;
+}
+
+.current-call-card {
+  padding: 12px;
+  overflow: hidden;
+}
+
+.player-current-number {
+  width: min(175px, 25vh, 78%);
+  margin: 7px auto;
+  font-size: clamp(2rem, 5vw, 3.7rem);
+}
+
+.target-instruction {
+  min-height: 0;
+  margin: 2px 0 7px;
+  font-size: .9rem;
+}
+
+.player-progress {
+  gap: 5px;
+}
+
+.player-progress > div {
+  padding: 7px;
+}
+
+.player-progress strong {
+  font-size: 1.25rem;
+}
+
+.ticket-panel {
+  padding: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ticket-heading {
+  margin-bottom: 4px;
+}
+
+.ticket-heading h2 {
+  font-size: 1.1rem;
+}
+
+.bingo {
+  width: min(100%, calc(100dvh - 205px), 545px);
+  margin: 4px auto 6px;
+}
+
+.bingo-headers,
+.card {
+  gap: 4px;
+}
+
+.bingo-headers {
+  margin-bottom: 4px;
+}
+
+.header {
+  min-height: clamp(28px, 5vh, 41px);
+}
+
+.player-actions {
+  gap: 4px;
+}
+
+.claim-button {
+  min-height: 39px;
+  padding: 8px 15px;
+}
+
+.player-page .centered-help {
+  margin-top: 3px;
+  font-size: .72rem;
+}
+
+@media (max-width: 760px) {
+  .host-shell,
+  .player-shell {
+    width: calc(100vw - 8px);
+    height: calc(100dvh - 8px);
+    margin: 4px auto;
+  }
+
+  .compact-header {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .compact-header .status-pill {
+    max-width: 48%;
+    min-height: 32px;
+    padding: 5px 8px;
+    font-size: .72rem;
+  }
+
+  .compact-stats {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .compact-stats::-webkit-scrollbar { display: none; }
+
+  .compact-stats .stat-card {
+    min-width: 88px;
+  }
+
+  .dashboard-fit-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1.2fr) auto auto;
+    grid-template-areas: "hero" "mode" "controls";
+  }
+
+  .dashboard-fit-grid .current-number {
+    width: min(140px, 24vh, 42vw);
+  }
+
+  .dashboard-fit-grid .mode-panel,
+  .dashboard-fit-grid .controls-panel {
+    padding: 8px;
+  }
+
+  .dashboard-fit-grid .mode-panel .panel-heading,
+  .dashboard-fit-grid .controls-panel .panel-heading {
+    display: none;
+  }
+
+  .dashboard-fit-grid .helper-text {
+    display: none;
+  }
+
+  .host-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .host-buttons button {
+    min-height: 38px;
+    padding: 6px 8px;
+    font-size: .76rem;
+  }
+
+  .player-header {
+    align-items: center;
+  }
+
+  .player-header .eyebrow,
+  .legend,
+  .player-page .centered-help {
+    display: none;
+  }
+
+  .player-header h1 {
+    font-size: 1.45rem;
+  }
+
+  .welcome-player {
+    font-size: .75rem;
+  }
+
+  .stage-badge {
+    padding: 6px 8px;
+    font-size: .7rem;
+  }
+
+  .icon-link {
+    width: 34px;
+    height: 34px;
+  }
+
+  .player-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .current-call-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "kick ball progress" "kick target progress";
+    align-items: center;
+    gap: 4px 9px;
+    padding: 6px 9px;
+  }
+
+  .current-call-card .panel-kicker { grid-area: kick; margin: 0; writing-mode: vertical-rl; font-size: .58rem; }
+  .player-current-number { grid-area: ball; width: min(92px, 14vh, 27vw); margin: 0; font-size: clamp(1.55rem, 8vw, 2.5rem); border-width: 4px; }
+  .target-instruction { grid-area: target; margin: 0; font-size: .72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .player-progress { grid-area: progress; grid-template-columns: 1fr; margin: 0; }
+  .player-progress > div { padding: 3px 7px; min-width: 73px; }
+  .progress-label { font-size: .55rem; }
+  .player-progress strong { font-size: 1rem; }
+
+  .ticket-panel {
+    padding: 6px;
+  }
+
+  .ticket-heading {
+    display: none;
+  }
+
+  .bingo {
+    width: min(96vw, calc(100dvh - 218px), 500px);
+    margin: 0 auto 4px;
+  }
+
+  .header {
+    min-height: clamp(24px, 4.5vh, 34px);
+    font-size: 1.05rem;
+  }
+
+  .number {
+    border-radius: 7px;
+    border-width: 2px;
+    font-size: clamp(.82rem, 5vw, 1.2rem);
+  }
+
+  .claim-button {
+    min-width: 170px;
+    min-height: 34px;
+    padding: 5px 12px;
+    font-size: .86rem;
+  }
+}
+
+@media (max-height: 650px) {
+  .eyebrow,
+  .helper-text,
+  .ticket-heading,
+  .last-call-strip > span {
+    display: none;
+  }
+
+  .compact-header,
+  .player-header {
+    padding-top: 2px;
+  }
+
+  .compact-stats .stat-card {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .bingo {
+    width: min(90vw, calc(100dvh - 175px), 470px);
+  }
+}
+
+
+/* ======================================
+   GENERAL SASSY PERSONALITY
+====================================== */
+.general-sassy-console {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 14px;
+  min-height: 72px;
+  padding: 12px 16px;
+  border: 1px solid rgba(250, 204, 21, .35);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(80, 40, 10, .58), rgba(7, 26, 61, .9));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 10px 28px rgba(0,0,0,.2);
+  overflow: hidden;
+}
+.sassy-avatar {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 25px;
+  background: linear-gradient(145deg, #fde047, #ca8a04);
+  box-shadow: 0 0 20px rgba(250,204,21,.38);
+}
+.sassy-title {
+  display: block;
+  color: #facc15;
+  font-size: 1.05rem;
+  letter-spacing: .04em;
+}
+.sassy-message {
+  margin: 3px 0 0;
+  color: #f8fafc;
+  font-size: .93rem;
+  line-height: 1.3;
+}
+.player-sassy-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid rgba(250,204,21,.25);
+  border-radius: 13px;
+  color: #fef3c7;
+  background: rgba(120, 53, 15, .24);
+  font-size: clamp(.78rem, 2vw, .92rem);
+  text-align: center;
+}
+.sassy-mini-avatar { font-size: 1.2rem; flex: 0 0 auto; }
+@media (max-width: 680px), (max-height: 720px) {
+  .general-sassy-console { min-height: 58px; padding: 8px 11px; gap: 9px; }
+  .sassy-avatar { width: 38px; height: 38px; font-size: 20px; }
+  .sassy-message { font-size: .78rem; }
+  .sassy-title { font-size: .9rem; }
+  .player-sassy-strip { min-height: 32px; padding: 5px 8px; }
+}

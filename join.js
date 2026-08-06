@@ -1,5 +1,5 @@
 import { database } from "./firebase.js";
-import { ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const nameInput = document.getElementById("playerName");
 const joinButton = document.getElementById("joinButton");
@@ -30,6 +30,19 @@ function createCard() {
 
 function makePlayerId(name) {
   return name.trim().toLowerCase().replace(/[.#$[\]/]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+const joinQuips = [
+  (name) => `General Sassy has approved ${name}'s enlistment… against his better judgement.`,
+  (name) => `${name}, your card is locked. No swapping it when the numbers get spicy.`,
+  (name) => `Welcome, ${name}. General Sassy is watching, so dab responsibly.`,
+  (name) => `${name} has entered General Sassy's arena. Dignity is optional; luck is not.`,
+  (name) => `Card issued to ${name}. Complaints about the numbers can be directed to absolutely nobody.`,
+  (name) => `General Sassy welcomes ${name}. Try not to shout “Bingo” after one ball.`
+];
+
+function randomJoinQuip(name) {
+  return joinQuips[Math.floor(Math.random() * joinQuips.length)](name);
 }
 
 function status(message, type = "normal") {
@@ -77,12 +90,13 @@ async function joinGame() {
       localStorage.setItem("bingoPlayer", playerId);
       localStorage.setItem("bingoPlayerName", existing.name || name);
       localStorage.setItem("bingoGameId", existing.gameId || game.gameId || "");
-      status("Welcome back! Loading your card…", "success");
+      status(`Welcome back, ${existing.name || name}. Your card missed you.`, "success");
       window.location.href = "player.html";
       return;
     }
 
     const gameId = game.gameId || `game-${Date.now()}`;
+    await remove(ref(database, `bingo/kickedPlayers/${playerId}`));
     await set(playerRef, {
       id: playerId,
       name,
@@ -98,8 +112,14 @@ async function joinGame() {
     localStorage.setItem("bingoPlayer", playerId);
     localStorage.setItem("bingoPlayerName", name);
     localStorage.setItem("bingoGameId", gameId);
-    status("Joined! Loading your card…", "success");
-    window.location.href = "player.html";
+    const welcomeLine = randomJoinQuip(name);
+    await set(ref(database, "bingo/generalSassy"), {
+      message: welcomeLine,
+      event: "join",
+      time: Date.now()
+    });
+    status(welcomeLine, "success");
+    setTimeout(() => { window.location.href = "player.html"; }, 650);
   } catch (error) {
     console.error(error);
     status("Could not join. Please try again.", "error");
