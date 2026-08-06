@@ -34,43 +34,79 @@ const els = {
   historySummary: document.getElementById("historySummary")
 };
 
-let state = {
-  status: "joining",
-  joiningOpen: true,
-  locked: false,
-  gameMode: "progressive",
-  progressiveStage: "one-line"
-};
+let state = { status: "joining", joiningOpen: true, locked: false, gameMode: "progressive", progressiveStage: "one-line" };
 let calledNumbers = [];
 let callTimes = [];
-let currentWinner = null;
 let startedAt = null;
+let currentWinner = null;
 
-function randomNumbers(min, max, count) {
-  const out = [];
-  while (out.length < count) {
-    const number = Math.floor(Math.random() * (max - min + 1)) + min;
-    if (!out.includes(number)) out.push(number);
+function shuffle(values) {
+  const result = [...values];
+  for (let i = result.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
   }
-  return out;
+  return result;
 }
 
-function createCard() {
-  const columns = [
-    randomNumbers(1, 15, 5), randomNumbers(16, 30, 5), randomNumbers(31, 45, 5),
-    randomNumbers(46, 60, 5), randomNumbers(61, 75, 5)
-  ];
-  const card = [];
-  for (let row = 0; row < 5; row += 1) {
-    for (let column = 0; column < 5; column += 1) {
-      card.push(row === 2 && column === 2 ? "FREE" : columns[column][row]);
+function columnRange(column) {
+  if (column === 0) return [1, 9];
+  if (column === 8) return [80, 90];
+  return [column * 10, column * 10 + 9];
+}
+
+function randomUnique(min, max, count) {
+  return shuffle(Array.from({ length: max - min + 1 }, (_, index) => min + index))
+    .slice(0, count)
+    .sort((a, b) => a - b);
+}
+
+function create90BallTicket() {
+  for (let attempt = 0; attempt < 5000; attempt += 1) {
+    const columnCounts = Array(9).fill(1);
+    let remaining = 6;
+    while (remaining > 0) {
+      const column = Math.floor(Math.random() * 9);
+      if (columnCounts[column] < 3) {
+        columnCounts[column] += 1;
+        remaining -= 1;
+      }
     }
-  }
-  return card;
-}
 
-function letter(number) {
-  return number <= 15 ? "B" : number <= 30 ? "I" : number <= 45 ? "N" : number <= 60 ? "G" : "O";
+    const occupied = Array.from({ length: 3 }, () => Array(9).fill(false));
+    const rowCounts = [0, 0, 0];
+    let valid = true;
+    const order = shuffle(Array.from({ length: 9 }, (_, index) => index))
+      .sort((a, b) => columnCounts[b] - columnCounts[a]);
+
+    for (const column of order) {
+      const count = columnCounts[column];
+      const combos = count === 3 ? [[0, 1, 2]] : count === 2
+        ? shuffle([[0, 1], [0, 2], [1, 2]])
+        : shuffle([[0], [1], [2]]);
+      const choice = combos.find((combo) => combo.every((row) => rowCounts[row] < 5));
+      if (!choice) {
+        valid = false;
+        break;
+      }
+      choice.forEach((row) => {
+        occupied[row][column] = true;
+        rowCounts[row] += 1;
+      });
+    }
+
+    if (!valid || rowCounts.some((count) => count !== 5)) continue;
+
+    const ticket = Array.from({ length: 3 }, () => Array(9).fill(null));
+    for (let column = 0; column < 9; column += 1) {
+      const rows = [0, 1, 2].filter((row) => occupied[row][column]);
+      const [min, max] = columnRange(column);
+      const numbers = randomUnique(min, max, rows.length);
+      rows.forEach((row, index) => { ticket[row][column] = numbers[index]; });
+    }
+    return ticket.flat();
+  }
+  throw new Error("Unable to generate a valid 90-ball ticket.");
 }
 
 function numberFrom(call) {
@@ -82,6 +118,7 @@ function numberFrom(call) {
 }
 
 function callText(call) {
+  if (typeof call === "number") return String(call);
   return typeof call === "string" ? call : call?.call || "--";
 }
 
@@ -90,13 +127,7 @@ function stageName(stage) {
 }
 
 function modeName(mode) {
-  return ({
-    progressive: "Progressive Game",
-    "one-line": "One Line",
-    "two-lines": "Two Lines",
-    "four-corners": "Four Corners",
-    "full-house": "Full House"
-  })[mode] || "Progressive Game";
+  return ({ progressive: "Progressive 90-Ball", "one-line": "One Line", "two-lines": "Two Lines", "full-house": "Full House" })[mode] || "Progressive 90-Ball";
 }
 
 function activeTarget() {
@@ -105,52 +136,44 @@ function activeTarget() {
 
 function modeDescription(mode) {
   return ({
-    progressive: "One continuous round: first One Line, then Two Lines, then Full House. Cards, dabs and called numbers carry forward.",
-    "one-line": "Complete any horizontal line.",
-    "two-lines": "Complete any two horizontal lines.",
-    "four-corners": "Dab all four corner numbers.",
-    "full-house": "Dab every number on the card."
-  })[mode] || "One continuous progressive round.";
+    progressive: "One continuous 90-ball round: One Line, then Two Lines, then Full House. Tickets, dabs and called numbers carry forward.",
+    "one-line": "90-ball ticket: complete any one row.",
+    "two-lines": "90-ball ticket: complete any two rows.",
+    "full-house": "90-ball ticket: dab all 15 numbers."
+  })[mode] || "One continuous 90-ball progressive round.";
 }
-
 
 function formatDuration(milliseconds) {
   if (!milliseconds || milliseconds < 0) return "00:00";
-  const totalSeconds = Math.floor(milliseconds / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  const seconds = Math.floor(milliseconds / 1000);
+  return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
 function updateStatistics() {
-  const playerTotal = Number(els.count?.textContent || 0);
-  if (els.statPlayers) els.statPlayers.textContent = String(playerTotal);
+  const players = Number(els.count?.textContent || 0);
+  if (els.statPlayers) els.statPlayers.textContent = String(players);
   if (els.statCalled) els.statCalled.textContent = String(calledNumbers.length);
-  if (els.statRemaining) els.statRemaining.textContent = String(Math.max(0, 75 - calledNumbers.length));
+  if (els.statRemaining) els.statRemaining.textContent = String(Math.max(0, 90 - calledNumbers.length));
   if (els.statStage) els.statStage.textContent = stageName(activeTarget());
-  if (els.historySummary) els.historySummary.textContent = `${calledNumbers.length} of 75`;
-
+  if (els.historySummary) els.historySummary.textContent = `${calledNumbers.length} of 90`;
   if (els.statElapsed) {
     const running = startedAt && ["playing", "stage-winner", "winner"].includes(state.status);
     els.statElapsed.textContent = running ? formatDuration(Date.now() - startedAt) : "00:00";
   }
-
   if (els.statAverage) {
-    if (callTimes.length < 2) {
-      els.statAverage.textContent = "—";
-    } else {
-      const sorted = [...callTimes].sort((a, b) => a - b);
-      const averageMs = (sorted[sorted.length - 1] - sorted[0]) / (sorted.length - 1);
-      els.statAverage.textContent = `${Math.max(1, Math.round(averageMs / 1000))}s`;
+    if (callTimes.length < 2) els.statAverage.textContent = "—";
+    else {
+      const times = [...callTimes].sort((a, b) => a - b);
+      els.statAverage.textContent = `${Math.max(1, Math.round(((times.at(-1) - times[0]) / (times.length - 1)) / 1000))}s`;
     }
   }
 }
 
 function updateControls() {
   els.open.disabled = state.status === "joining" && state.joiningOpen;
-  els.start.disabled = state.status === "playing" || state.status === "stage-winner" || state.status === "winner";
-  els.call.disabled = state.status !== "playing" || state.locked || calledNumbers.length >= 75;
-  els.mode.disabled = state.status === "playing" || state.status === "stage-winner" || state.status === "winner";
+  els.start.disabled = ["playing", "stage-winner", "winner"].includes(state.status);
+  els.call.disabled = state.status !== "playing" || state.locked || calledNumbers.length >= 90;
+  els.mode.disabled = ["playing", "stage-winner", "winner"].includes(state.status);
   els.mode.value = state.gameMode;
   els.modeDesc.textContent = modeDescription(state.gameMode);
 }
@@ -158,15 +181,7 @@ function updateControls() {
 async function initialise() {
   const snap = await get(bingoRef);
   if (!snap.exists()) {
-    await set(bingoRef, {
-      gameId: `game-${Date.now()}`,
-      status: "joining",
-      joiningOpen: true,
-      locked: false,
-      gameMode: "progressive",
-      progressiveStage: "one-line",
-      createdAt: Date.now()
-    });
+    await set(bingoRef, { gameId: `game-${Date.now()}`, status: "joining", joiningOpen: true, locked: false, gameMode: "progressive", progressiveStage: "one-line", ballCount: 90, createdAt: Date.now() });
     return;
   }
   const game = snap.val();
@@ -175,8 +190,9 @@ async function initialise() {
   if (!game.status) patch.status = "joining";
   if (game.joiningOpen === undefined) patch.joiningOpen = true;
   if (game.locked === undefined) patch.locked = false;
-  if (!game.gameMode) patch.gameMode = "progressive";
+  if (!game.gameMode || game.gameMode === "four-corners") patch.gameMode = "progressive";
   if (!game.progressiveStage) patch.progressiveStage = "one-line";
+  if (game.ballCount !== 90) patch.ballCount = 90;
   if (Object.keys(patch).length) await update(bingoRef, patch);
 }
 
@@ -186,20 +202,14 @@ onValue(bingoRef, (snap) => {
     status: game.status || "joining",
     joiningOpen: game.joiningOpen !== false,
     locked: Boolean(game.locked),
-    gameMode: game.gameMode || "progressive",
+    gameMode: game.gameMode === "four-corners" ? "progressive" : (game.gameMode || "progressive"),
     progressiveStage: game.progressiveStage || "one-line"
   };
-
   const target = stageName(activeTarget());
-  if (state.status === "playing") {
-    els.status.textContent = `${modeName(state.gameMode)} — playing for ${target}`;
-  } else if (state.status === "stage-winner") {
-    els.status.textContent = `${target} winner announced — continue when ready`;
-  } else if (state.status === "winner") {
-    els.status.textContent = `Final winner announced — ${target}`;
-  } else {
-    els.status.textContent = `${state.joiningOpen ? "Joining open" : "Joining closed"} — ${modeName(state.gameMode)}`;
-  }
+  if (state.status === "playing") els.status.textContent = `${modeName(state.gameMode)} — playing for ${target}`;
+  else if (state.status === "stage-winner") els.status.textContent = `${target} winner announced — continue when ready`;
+  else if (state.status === "winner") els.status.textContent = `Final winner announced — ${target}`;
+  else els.status.textContent = `${state.joiningOpen ? "Joining open" : "Joining closed"} — ${modeName(state.gameMode)}`;
   startedAt = Number(game.startedAt || game.createdAt || 0) || null;
   updateControls();
   updateStatistics();
@@ -214,24 +224,20 @@ onValue(playersRef, (snap) => {
     els.list.textContent = "No players yet.";
     return;
   }
-
-  entries
-    .sort((a, b) => String(a[1].name || "").localeCompare(String(b[1].name || "")))
-    .forEach(([id, player]) => {
-      const row = document.createElement("div");
-      row.className = "player-row";
-      const name = document.createElement("span");
-      name.textContent = `👤 ${player.name || id}`;
-      const button = document.createElement("button");
-      button.className = "mini danger";
-      button.textContent = "Remove";
-      button.addEventListener("click", async () => {
-        if (!confirm(`Remove ${player.name || id}?`)) return;
-        await remove(ref(database, `bingo/players/${id}`));
-      });
-      row.append(name, button);
-      els.list.appendChild(row);
+  entries.sort((a, b) => String(a[1].name || "").localeCompare(String(b[1].name || ""))).forEach(([id, player]) => {
+    const row = document.createElement("div");
+    row.className = "player-row";
+    const name = document.createElement("span");
+    name.textContent = `👤 ${player.name || id}`;
+    const button = document.createElement("button");
+    button.className = "mini danger";
+    button.textContent = "Remove";
+    button.addEventListener("click", async () => {
+      if (confirm(`Remove ${player.name || id}?`)) await remove(ref(database, `bingo/players/${id}`));
     });
+    row.append(name, button);
+    els.list.appendChild(row);
+  });
 });
 
 onValue(currentRef, (snap) => {
@@ -246,15 +252,15 @@ onValue(currentRef, (snap) => {
 onValue(callsRef, (snap) => {
   const calls = Object.values(snap.val() || {});
   calledNumbers = [...new Set(calls.map(numberFrom).filter(Number.isFinite))];
-  callTimes = calls.map((call) => Number(call?.calledAt || call?.time || 0)).filter((time) => time > 0);
+  callTimes = calls.map((call) => Number(call?.calledAt || call?.time || 0)).filter(Boolean);
   const newest = [...calls].reverse();
-  const draw = (target, list) => {
-    target.innerHTML = "";
-    list.forEach((call) => {
+  const draw = (container, items) => {
+    container.innerHTML = "";
+    items.forEach((call) => {
       const ball = document.createElement("div");
       ball.className = "called";
       ball.textContent = callText(call);
-      target.appendChild(ball);
+      container.appendChild(ball);
     });
   };
   draw(els.last, newest.slice(0, 10));
@@ -264,143 +270,59 @@ onValue(callsRef, (snap) => {
 });
 
 onValue(winnerRef, (snap) => {
-  if (!snap.exists()) {
-    currentWinner = null;
+  currentWinner = snap.val();
+  if (!currentWinner) {
     els.popup.classList.remove("show");
     return;
   }
-
-  currentWinner = snap.val();
-  const wonStage = currentWinner.stage || currentWinner.gameMode || activeTarget();
-  els.winnerName.textContent = `${currentWinner.name || "A player"} has won ${stageName(wonStage)}!`;
-
-  const progressiveNotFinished =
-    state.gameMode === "progressive" && wonStage !== "full-house";
-
-  els.winnerContinue.style.display = progressiveNotFinished ? "inline-flex" : "none";
-  els.winnerContinue.textContent = wonStage === "one-line"
-    ? "Continue to Two Lines"
-    : "Continue to Full House";
-
+  els.winnerName.textContent = `${currentWinner.name || "A player"} has won ${stageName(currentWinner.stage || activeTarget())}!`;
   els.popup.classList.add("show");
+  const canContinue = state.gameMode === "progressive" && (currentWinner.stage || activeTarget()) !== "full-house";
+  els.winnerContinue.style.display = canContinue ? "inline-flex" : "none";
 });
 
 els.mode.addEventListener("change", async () => {
-  if (["playing", "stage-winner", "winner"].includes(state.status)) return;
-  await update(bingoRef, {
-    gameMode: els.mode.value,
-    progressiveStage: "one-line"
-  });
+  await update(bingoRef, { gameMode: els.mode.value, progressiveStage: "one-line", ballCount: 90 });
 });
-
-els.open.addEventListener("click", () => update(bingoRef, {
-  status: "joining",
-  joiningOpen: true,
-  locked: false
-}));
-
+els.open.addEventListener("click", () => update(bingoRef, { status: "joining", joiningOpen: true, locked: false }));
 els.start.addEventListener("click", async () => {
-  const players = await get(playersRef);
-  if (!players.exists()) {
+  if (!(await get(playersRef)).exists()) {
     alert("No players have joined yet.");
     return;
   }
-  await update(bingoRef, {
-    status: "playing",
-    joiningOpen: false,
-    locked: false,
-    gameMode: els.mode.value,
-    progressiveStage: "one-line",
-    startedAt: Date.now()
-  });
+  await update(bingoRef, { status: "playing", joiningOpen: false, locked: false, gameMode: els.mode.value, progressiveStage: "one-line", ballCount: 90, startedAt: Date.now() });
 });
-
 els.call.addEventListener("click", async () => {
-  if (state.status !== "playing" || state.locked) return;
-  if (calledNumbers.length >= 75) {
-    alert("All 75 numbers have been called.");
-    return;
-  }
+  if (state.status !== "playing" || state.locked || calledNumbers.length >= 90) return;
   let number;
-  do {
-    number = Math.floor(Math.random() * 75) + 1;
-  } while (calledNumbers.includes(number));
-
-  const data = {
-    call: `${letter(number)} ${number}`,
-    number,
-    calledAt: Date.now()
-  };
-
-  els.call.disabled = true;
-  try {
-    await set(currentRef, data);
-    await push(callsRef, data);
-  } finally {
-    updateControls();
-  }
+  do number = Math.floor(Math.random() * 90) + 1;
+  while (calledNumbers.includes(number));
+  const data = { call: String(number), number, calledAt: Date.now() };
+  await set(currentRef, data);
+  await push(callsRef, data);
 });
-
-async function continueProgressiveGame() {
-  if (!currentWinner || state.gameMode !== "progressive") return;
-
-  const wonStage = currentWinner.stage || state.progressiveStage;
-  const nextStage = wonStage === "one-line" ? "two-lines" : "full-house";
-
+els.closeWinner.addEventListener("click", () => els.popup.classList.remove("show"));
+els.winnerContinue.addEventListener("click", async () => {
+  const currentStage = currentWinner?.stage || state.progressiveStage;
+  const nextStage = currentStage === "one-line" ? "two-lines" : "full-house";
   await remove(winnerRef);
-  await update(bingoRef, {
-    status: "playing",
-    locked: false,
-    progressiveStage: nextStage,
-    stageStartedAt: Date.now()
-  });
+  await update(bingoRef, { status: "playing", locked: false, progressiveStage: nextStage });
   els.popup.classList.remove("show");
-}
+});
 
 async function resetGame() {
-  if (!confirm("Restart the game? Every player gets a new card and all dabs/calls are cleared.")) return;
-  els.reset.disabled = true;
-  try {
-    const playersSnap = await get(playersRef);
-    const players = playersSnap.val() || {};
-    const gameId = `game-${Date.now()}`;
-    const freshPlayers = {};
-    Object.entries(players).forEach(([id, player]) => {
-      freshPlayers[id] = {
-        ...player,
-        card: createCard(),
-        marked: null,
-        gameId,
-        locked: true,
-        cardCreatedAt: Date.now()
-      };
-    });
-
-    await set(bingoRef, {
-      gameId,
-      status: "joining",
-      joiningOpen: true,
-      locked: false,
-      gameMode: els.mode.value || state.gameMode,
-      progressiveStage: "one-line",
-      createdAt: Date.now(),
-      restartTime: Date.now(),
-      players: freshPlayers
-    });
-    els.popup.classList.remove("show");
-  } finally {
-    els.reset.disabled = false;
-  }
+  if (!confirm("Force restart? Every player will receive a new 90-ball ticket and all dabs/calls will be cleared.")) return;
+  const players = (await get(playersRef)).val() || {};
+  const gameId = `game-${Date.now()}`;
+  const freshPlayers = {};
+  Object.entries(players).forEach(([id, player]) => {
+    freshPlayers[id] = { ...player, card: create90BallTicket(), marked: null, gameId, ticketType: "90-ball", cardCreatedAt: Date.now() };
+  });
+  await set(bingoRef, { gameId, status: "joining", joiningOpen: true, locked: false, gameMode: els.mode.value || "progressive", progressiveStage: "one-line", ballCount: 90, createdAt: Date.now(), restartTime: Date.now(), players: freshPlayers });
+  els.popup.classList.remove("show");
 }
-
-els.winnerContinue.addEventListener("click", continueProgressiveGame);
 els.reset.addEventListener("click", resetGame);
 els.winnerRestart.addEventListener("click", resetGame);
-els.closeWinner.addEventListener("click", () => els.popup.classList.remove("show"));
 
 setInterval(updateStatistics, 1000);
-
-initialise().catch((error) => {
-  console.error(error);
-  els.status.textContent = "Firebase connection failed.";
-});
+initialise().catch(console.error);

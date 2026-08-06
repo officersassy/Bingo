@@ -435,3 +435,37 @@ button.mini { min-height: 31px; padding: 5px 10px; border-radius: 9px; font-size
   .player-progress strong { font-size: 1.35rem; }
   .bingo-headers,.card { gap: 3px; }
 }
+
+/* ======================================
+   90-BALL TICKET OVERRIDES
+====================================== */
+.player-shell { max-width: 1280px; }
+.bingo { width: min(100%, 820px); }
+.card {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.number {
+  aspect-ratio: 1.15 / 1;
+  min-height: 54px;
+  border-radius: 10px;
+  font-size: clamp(.9rem, 2.2vw, 1.35rem);
+}
+.number.blank {
+  cursor: default;
+  border-color: rgba(148,197,255,.08);
+  background: rgba(255,255,255,.035);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+}
+.number.blank:hover { transform: none; }
+@media (max-width: 760px) {
+  .bingo { width: 100%; }
+  .card { gap: 3px; }
+  .number { min-height: 38px; border-width: 2px; border-radius: 7px; font-size: clamp(.72rem, 3.2vw, 1rem); }
+}
+@media (max-width: 420px) {
+  .card { gap: 2px; }
+  .number { min-height: 34px; padding: 0; }
+}
