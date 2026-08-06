@@ -1,5 +1,6 @@
 // ======================================
 // BINGO V2 — JOIN SYSTEM
+// Supports returning players safely
 // ======================================
 
 import { database } from "./firebase.js";
@@ -15,13 +16,18 @@ import {
 // PAGE ELEMENTS
 // ======================================
 
-const nameInput = document.getElementById("playerName");
-const joinButton = document.getElementById("joinButton");
-const joinStatus = document.getElementById("joinStatus");
+const nameInput =
+    document.getElementById("playerName");
+
+const joinButton =
+    document.getElementById("joinButton");
+
+const joinStatus =
+    document.getElementById("joinStatus");
 
 
 // ======================================
-// CREATE RANDOM UNIQUE NUMBERS
+// RANDOM NUMBERS
 // ======================================
 
 function randomNumbers(min, max, amount) {
@@ -29,7 +35,9 @@ function randomNumbers(min, max, amount) {
 
     while (numbers.length < amount) {
         const number =
-            Math.floor(Math.random() * (max - min + 1)) + min;
+            Math.floor(
+                Math.random() * (max - min + 1)
+            ) + min;
 
         if (!numbers.includes(number)) {
             numbers.push(number);
@@ -41,7 +49,7 @@ function randomNumbers(min, max, amount) {
 
 
 // ======================================
-// CREATE 5 × 5 BINGO CARD
+// CREATE LOCKED BINGO CARD
 // ======================================
 
 function createBingoCard() {
@@ -56,7 +64,11 @@ function createBingoCard() {
     const card = [];
 
     for (let row = 0; row < 5; row += 1) {
-        for (let column = 0; column < 5; column += 1) {
+        for (
+            let column = 0;
+            column < 5;
+            column += 1
+        ) {
             if (row === 2 && column === 2) {
                 card.push("FREE");
             } else {
@@ -70,7 +82,7 @@ function createBingoCard() {
 
 
 // ======================================
-// CREATE SAFE FIREBASE PLAYER ID
+// CREATE SAFE PLAYER ID
 // ======================================
 
 function createPlayerId(name) {
@@ -84,7 +96,7 @@ function createPlayerId(name) {
 
 
 // ======================================
-// SHOW STATUS MESSAGE
+// STATUS MESSAGE
 // ======================================
 
 function showStatus(message, type = "normal") {
@@ -96,11 +108,55 @@ function showStatus(message, type = "normal") {
 
     if (type === "error") {
         joinStatus.style.color = "#fca5a5";
-    } else if (type === "success") {
-        joinStatus.style.color = "#86efac";
-    } else {
-        joinStatus.style.color = "";
+        return;
     }
+
+    if (type === "success") {
+        joinStatus.style.color = "#86efac";
+        return;
+    }
+
+    joinStatus.style.color = "#bfdbfe";
+}
+
+
+// ======================================
+// SAVE PLAYER IN BROWSER
+// ======================================
+
+function saveLocalPlayer(
+    playerId,
+    playerName,
+    gameId
+) {
+    localStorage.setItem(
+        "bingoPlayerId",
+        playerId
+    );
+
+    localStorage.setItem(
+        "bingoPlayer",
+        playerId
+    );
+
+    localStorage.setItem(
+        "bingoPlayerName",
+        playerName
+    );
+
+    localStorage.setItem(
+        "bingoGameId",
+        gameId || ""
+    );
+}
+
+
+// ======================================
+// OPEN PLAYER PAGE
+// ======================================
+
+function openPlayerPage() {
+    window.location.href = "player.html";
 }
 
 
@@ -108,125 +164,214 @@ function showStatus(message, type = "normal") {
 // JOIN GAME
 // ======================================
 
-window.joinGame = async function joinGame() {
-    const playerName = nameInput?.value.trim() || "";
+window.joinGame =
+    async function joinGame() {
+        const playerName =
+            nameInput?.value.trim() || "";
 
-    if (!playerName) {
-        showStatus("Please enter your name.", "error");
-        nameInput?.focus();
-        return;
-    }
-
-    if (playerName.length < 2) {
-        showStatus("Your name must contain at least 2 characters.", "error");
-        nameInput?.focus();
-        return;
-    }
-
-    const playerId = createPlayerId(playerName);
-
-    if (!playerId) {
-        showStatus("Please use letters or numbers in your name.", "error");
-        nameInput?.focus();
-        return;
-    }
-
-    joinButton.disabled = true;
-    showStatus("Checking the game...");
-
-    try {
-        const bingoSnapshot = await get(ref(database, "bingo"));
-        const bingoData = bingoSnapshot.val() || {};
-
-        const status = bingoData.status || "waiting";
-        const joiningOpen =
-            bingoData.joiningOpen === undefined
-                ? true
-                : bingoData.joiningOpen;
-
-        if (
-            joiningOpen === false ||
-            status === "playing" ||
-            status === "winner"
-        ) {
+        if (!playerName) {
             showStatus(
-                "Joining is currently closed. Please speak to the host.",
+                "Please enter your name.",
                 "error"
             );
 
-            joinButton.disabled = false;
-            return;
-        }
-
-        const playerRef = ref(
-            database,
-            `bingo/players/${playerId}`
-        );
-
-        const existingPlayer = await get(playerRef);
-
-        if (existingPlayer.exists()) {
-            showStatus(
-                "That player name is already in use. Please choose another name.",
-                "error"
-            );
-
-            joinButton.disabled = false;
             nameInput?.focus();
             return;
         }
 
-        const gameId =
-            bingoData.gameId || `game-${Date.now()}`;
+        if (playerName.length < 2) {
+            showStatus(
+                "Your name must contain at least 2 characters.",
+                "error"
+            );
 
-        const bingoCard = createBingoCard();
+            nameInput?.focus();
+            return;
+        }
 
-        await set(playerRef, {
-            id: playerId,
-            name: playerName,
-            card: bingoCard,
-            joinedAt: Date.now(),
-            gameId,
-            locked: true
-        });
+        const playerId =
+            createPlayerId(playerName);
 
-        localStorage.setItem("bingoPlayerId", playerId);
-        localStorage.setItem("bingoPlayerName", playerName);
-        localStorage.setItem("bingoGameId", gameId);
+        if (!playerId) {
+            showStatus(
+                "Please use letters or numbers in your name.",
+                "error"
+            );
 
-        // Compatibility with the earlier version.
-        localStorage.setItem("bingoPlayer", playerId);
+            nameInput?.focus();
+            return;
+        }
 
-        showStatus(
-            "You have joined successfully. Loading your card...",
-            "success"
-        );
+        if (joinButton) {
+            joinButton.disabled = true;
+        }
 
-        window.setTimeout(() => {
-            window.location.href = "player.html";
-        }, 700);
+        showStatus("Checking the game...");
 
-    } catch (error) {
-        console.error("Unable to join Bingo:", error);
+        try {
+            const gameSnapshot =
+                await get(
+                    ref(database, "bingo")
+                );
 
-        showStatus(
-            "The game could not be joined. Please try again.",
-            "error"
-        );
+            const game =
+                gameSnapshot.val() || {};
 
-        joinButton.disabled = false;
-    }
-};
+            const status =
+                game.status || "joining";
+
+            const joiningOpen =
+                game.joiningOpen !== false;
+
+            if (
+                !joiningOpen ||
+                status === "playing" ||
+                status === "winner"
+            ) {
+                showStatus(
+                    "Joining is currently closed. Please speak to the host.",
+                    "error"
+                );
+
+                return;
+            }
+
+            const gameId =
+                game.gameId ||
+                `game-${Date.now()}`;
+
+            const playerRef =
+                ref(
+                    database,
+                    `bingo/players/${playerId}`
+                );
+
+            const existingSnapshot =
+                await get(playerRef);
+
+            const savedPlayerId =
+                localStorage.getItem(
+                    "bingoPlayerId"
+                ) ||
+                localStorage.getItem(
+                    "bingoPlayer"
+                );
+
+            // Existing player on this same browser:
+            // safely reopen their card.
+            if (
+                existingSnapshot.exists() &&
+                savedPlayerId === playerId
+            ) {
+                const existingPlayer =
+                    existingSnapshot.val();
+
+                saveLocalPlayer(
+                    playerId,
+                    existingPlayer.name ||
+                        playerName,
+                    existingPlayer.gameId ||
+                        gameId
+                );
+
+                showStatus(
+                    "Welcome back! Loading your card...",
+                    "success"
+                );
+
+                window.setTimeout(
+                    openPlayerPage,
+                    500
+                );
+
+                return;
+            }
+
+            // Someone else already owns this name.
+            if (existingSnapshot.exists()) {
+                showStatus(
+                    "That player name is already in use. Please choose another name.",
+                    "error"
+                );
+
+                nameInput?.focus();
+                return;
+            }
+
+            const bingoCard =
+                createBingoCard();
+
+            await set(playerRef, {
+                id: playerId,
+                name: playerName,
+                card: bingoCard,
+                marked: null,
+                joinedAt: Date.now(),
+                cardCreatedAt: Date.now(),
+                gameId,
+                locked: true
+            });
+
+            saveLocalPlayer(
+                playerId,
+                playerName,
+                gameId
+            );
+
+            showStatus(
+                "You have joined successfully. Loading your card...",
+                "success"
+            );
+
+            window.setTimeout(
+                openPlayerPage,
+                500
+            );
+
+        } catch (error) {
+            console.error(
+                "Unable to join Bingo:",
+                error
+            );
+
+            showStatus(
+                "The game could not be joined. Please try again.",
+                "error"
+            );
+
+        } finally {
+            if (joinButton) {
+                joinButton.disabled = false;
+            }
+        }
+    };
 
 
 // ======================================
 // ENTER KEY SUPPORT
 // ======================================
 
-nameInput?.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-        window.joinGame();
+nameInput?.addEventListener(
+    "keydown",
+    (event) => {
+        if (event.key === "Enter") {
+            window.joinGame();
+        }
     }
-});
+);
+
+
+// ======================================
+// LOAD SAVED NAME
+// ======================================
+
+const savedName =
+    localStorage.getItem(
+        "bingoPlayerName"
+    );
+
+if (nameInput && savedName) {
+    nameInput.value = savedName;
+}
 
 nameInput?.focus();
