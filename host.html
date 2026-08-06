@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bingo Host</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="background"></div>
+  <main class="host-container">
+    <h1>🎤 BINGO HOST</h1>
+    <div id="gameStatus" class="status-pill">Loading game…</div>
+
+    <section class="host-grid">
+      <div class="panel current-panel">
+        <h2>Current Number</h2>
+        <div id="currentNumber" class="current-number">--</div>
+      </div>
+      <div class="panel">
+        <h2>Players Joined</h2>
+        <div id="playerCount" class="big-count">0</div>
+        <div id="playerList" class="player-list">No players yet.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Game Mode</h2>
+      <select id="gameModeSelect">
+        <option value="one-line">One Line</option>
+        <option value="two-lines">Two Lines</option>
+        <option value="four-corners">Four Corners</option>
+        <option value="full-house">Full House</option>
+      </select>
+      <p id="gameModeDescription" class="helper-text"></p>
+    </section>
+
+    <div class="host-buttons">
+      <button id="openJoiningButton" type="button">🟢 Open Joining</button>
+      <button id="startGameButton" class="success" type="button">▶️ Start Game</button>
+      <button id="callNumberButton" type="button">🎱 Call Next Number</button>
+      <button id="resetGameButton" class="danger" type="button">🔄 Force Restart</button>
+    </div>
+
+    <section class="panel"><h2>Last 10 Calls</h2><div id="lastCalls" class="called-list"></div></section>
+    <section class="panel"><h2>All Called Numbers</h2><div id="calledNumbers" class="called-list"></div></section>
+  </main>
+
+  <div id="winnerPopup" class="winner-popup">
+    <div class="winner-box">
+      <div class="winner-title">🎉 BINGO WINNER 🎉</div>
+      <div id="winnerName" class="winner-name">We have a winner!</div>
+      <div class="action-buttons">
+        <button id="closeWinnerButton" type="button">Close Popup</button>
+        <button id="winnerRestartButton" class="danger" type="button">🔄 Start New Game</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./host.js"></script>
+</body>
+</html>
