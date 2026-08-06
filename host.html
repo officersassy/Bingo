@@ -54,6 +54,48 @@
 
         </section>
 
+        <section class="host-box">
+
+            <h2>Game Mode</h2>
+
+            <select
+                id="gameModeSelect"
+                style="
+                    width: min(100%, 380px);
+                    min-height: 56px;
+                    padding: 12px 18px;
+                    border-radius: 14px;
+                    border: 1px solid rgba(125, 211, 252, 0.3);
+                    background: #071a3d;
+                    color: white;
+                    font-size: 18px;
+                    font-weight: bold;
+                    text-align: center;
+                "
+            >
+                <option value="one-line">
+                    One Line
+                </option>
+
+                <option value="two-lines">
+                    Two Lines
+                </option>
+
+                <option value="four-corners">
+                    Four Corners
+                </option>
+
+                <option value="full-house">
+                    Full House
+                </option>
+            </select>
+
+            <p id="gameModeDescription" class="helper-text">
+                Complete any horizontal line.
+            </p>
+
+        </section>
+
         <div class="host-buttons">
 
             <button
@@ -109,8 +151,9 @@
         </section>
 
         <p class="helper-text">
-            Open joining before players enter. Start Game locks new joining.
-            Force Restart clears players, cards, called numbers and any winner.
+            The Remove button deletes an individual player and their card.
+            Force Restart keeps registered players but gives everyone a fresh
+            card and clears all dabs.
         </p>
 
     </main>
