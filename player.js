@@ -1,6 +1,6 @@
 // ======================================
 // BINGO V2 — PLAYER SYSTEM
-// New cards and cleared dabs on restart
+// Supports multiple game modes
 // ======================================
 
 import { database } from "./firebase.js";
@@ -55,6 +55,7 @@ let markedNumbers = [];
 
 let gameStatus = "waiting";
 let gameLocked = false;
+let gameMode = "one-line";
 let currentGameId = null;
 
 
@@ -62,11 +63,38 @@ let currentGameId = null;
 // STATUS MESSAGE
 // ======================================
 
-function showPlayerStatus(message, colour = "") {
-    if (!playerStatus) return;
+function showPlayerStatus(
+    message,
+    colour = ""
+) {
+    if (!playerStatus) {
+        return;
+    }
 
     playerStatus.textContent = message;
     playerStatus.style.color = colour;
+}
+
+
+// ======================================
+// GAME MODE TEXT
+// ======================================
+
+function getModeDisplayName(mode) {
+    switch (mode) {
+        case "two-lines":
+            return "Two Lines";
+
+        case "four-corners":
+            return "Four Corners";
+
+        case "full-house":
+            return "Full House";
+
+        case "one-line":
+        default:
+            return "One Line";
+    }
 }
 
 
@@ -75,7 +103,9 @@ function showPlayerStatus(message, colour = "") {
 // ======================================
 
 function convertCardToArray(cardData) {
-    if (!cardData) return [];
+    if (!cardData) {
+        return [];
+    }
 
     if (Array.isArray(cardData)) {
         return cardData.flat();
@@ -86,11 +116,14 @@ function convertCardToArray(cardData) {
 
 
 function convertMarksToArray(markedData) {
-    if (!markedData) return [];
+    if (!markedData) {
+        return [];
+    }
 
-    const values = Array.isArray(markedData)
-        ? markedData
-        : Object.values(markedData);
+    const values =
+        Array.isArray(markedData)
+            ? markedData
+            : Object.values(markedData);
 
     return values
         .map(Number)
@@ -104,18 +137,33 @@ function getNumberFromCall(callData) {
     }
 
     if (typeof callData === "string") {
-        const result = callData.match(/\d+/);
-        return result ? Number(result[0]) : null;
+        const result =
+            callData.match(/\d+/);
+
+        return result
+            ? Number(result[0])
+            : null;
     }
 
-    if (callData && typeof callData === "object") {
-        if (Number.isFinite(Number(callData.number))) {
+    if (
+        callData &&
+        typeof callData === "object"
+    ) {
+        if (
+            Number.isFinite(
+                Number(callData.number)
+            )
+        ) {
             return Number(callData.number);
         }
 
         if (typeof callData.call === "string") {
-            const result = callData.call.match(/\d+/);
-            return result ? Number(result[0]) : null;
+            const result =
+                callData.call.match(/\d+/);
+
+            return result
+                ? Number(result[0])
+                : null;
         }
     }
 
@@ -135,23 +183,32 @@ async function checkPlayerExists() {
 
     try {
         const snapshot = await get(
-            ref(database, `bingo/players/${playerId}`)
+            ref(
+                database,
+                `bingo/players/${playerId}`
+            )
         );
 
         if (!snapshot.exists()) {
-            localStorage.removeItem("bingoPlayerId");
-            localStorage.removeItem("bingoPlayer");
-            localStorage.removeItem("bingoPlayerName");
-            localStorage.removeItem("bingoGameId");
+            clearPlayerStorage();
 
-            window.location.href = "join.html";
+            alert(
+                "You have been removed from the game."
+            );
+
+            window.location.href =
+                "join.html";
+
             return false;
         }
 
         return true;
 
     } catch (error) {
-        console.error("Unable to find player:", error);
+        console.error(
+            "Unable to find player:",
+            error
+        );
 
         showPlayerStatus(
             "Unable to connect to your player card.",
@@ -163,16 +220,46 @@ async function checkPlayerExists() {
 }
 
 
+function clearPlayerStorage() {
+    localStorage.removeItem(
+        "bingoPlayerId"
+    );
+
+    localStorage.removeItem(
+        "bingoPlayer"
+    );
+
+    localStorage.removeItem(
+        "bingoPlayerName"
+    );
+
+    localStorage.removeItem(
+        "bingoGameId"
+    );
+}
+
+
 // ======================================
-// LIVE PLAYER CARD LISTENER
+// LIVE PLAYER CARD
 // ======================================
 
 function startPlayerListener() {
     onValue(
-        ref(database, `bingo/players/${playerId}`),
+        ref(
+            database,
+            `bingo/players/${playerId}`
+        ),
         (snapshot) => {
             if (!snapshot.exists()) {
-                window.location.href = "join.html";
+                clearPlayerStorage();
+
+                alert(
+                    "You have been removed from the game."
+                );
+
+                window.location.href =
+                    "join.html";
+
                 return;
             }
 
@@ -182,10 +269,14 @@ function startPlayerListener() {
             playerData = snapshot.val();
 
             bingoCard =
-                convertCardToArray(playerData.card);
+                convertCardToArray(
+                    playerData.card
+                );
 
             markedNumbers =
-                convertMarksToArray(playerData.marked);
+                convertMarksToArray(
+                    playerData.marked
+                );
 
             currentGameId =
                 playerData.gameId || null;
@@ -229,7 +320,7 @@ function startPlayerListener() {
 
 
 // ======================================
-// DRAW PLAYER CARD
+// DRAW CARD
 // ======================================
 
 function drawCard() {
@@ -254,17 +345,26 @@ function drawCard() {
         } else {
             const number = Number(value);
 
-            if (calledNumbers.includes(number)) {
+            if (
+                calledNumbers.includes(number)
+            ) {
                 square.classList.add("called");
             }
 
-            if (markedNumbers.includes(number)) {
-                square.classList.add("selected");
+            if (
+                markedNumbers.includes(number)
+            ) {
+                square.classList.add(
+                    "selected"
+                );
             }
 
-            square.addEventListener("click", () => {
-                dabNumber(number);
-            });
+            square.addEventListener(
+                "click",
+                () => {
+                    dabNumber(number);
+                }
+            );
         }
 
         cardArea.appendChild(square);
@@ -273,11 +373,14 @@ function drawCard() {
 
 
 // ======================================
-// DAB / UNDAB NUMBER
+// DAB / UNDAB
 // ======================================
 
 async function dabNumber(number) {
-    if (gameStatus === "winner" || gameLocked) {
+    if (
+        gameStatus === "winner" ||
+        gameLocked
+    ) {
         showPlayerStatus(
             "The game is currently locked.",
             "#fca5a5"
@@ -308,7 +411,10 @@ async function dabNumber(number) {
         markedNumbers.push(number);
     }
 
-    markedNumbers.sort((a, b) => a - b);
+    markedNumbers.sort(
+        (a, b) => a - b
+    );
+
     drawCard();
 
     try {
@@ -330,7 +436,10 @@ async function dabNumber(number) {
         );
 
     } catch (error) {
-        console.error("Unable to save dab:", error);
+        console.error(
+            "Unable to save dab:",
+            error
+        );
 
         showPlayerStatus(
             "Your dab could not be saved.",
@@ -347,11 +456,13 @@ async function dabNumber(number) {
 onValue(
     ref(database, "bingo/currentCall"),
     (snapshot) => {
-        const currentCall = snapshot.val();
+        const currentCall =
+            snapshot.val();
 
         if (!currentCall) {
             if (playerCurrent) {
-                playerCurrent.textContent = "--";
+                playerCurrent.textContent =
+                    "--";
             }
 
             return;
@@ -363,7 +474,8 @@ onValue(
                 : currentCall.call || "--";
 
         if (playerCurrent) {
-            playerCurrent.textContent = callText;
+            playerCurrent.textContent =
+                callText;
 
             playerCurrent.classList.remove(
                 "number-pop"
@@ -394,13 +506,19 @@ onValue(
             Object.values(calls)
                 .forEach((callData) => {
                     const number =
-                        getNumberFromCall(callData);
+                        getNumberFromCall(
+                            callData
+                        );
 
                     if (
                         number !== null &&
-                        !calledNumbers.includes(number)
+                        !calledNumbers.includes(
+                            number
+                        )
                     ) {
-                        calledNumbers.push(number);
+                        calledNumbers.push(
+                            number
+                        );
                     }
                 });
         }
@@ -417,7 +535,8 @@ onValue(
 onValue(
     ref(database, "bingo"),
     (snapshot) => {
-        const game = snapshot.val() || {};
+        const game =
+            snapshot.val() || {};
 
         gameStatus =
             game.status || "waiting";
@@ -425,17 +544,25 @@ onValue(
         gameLocked =
             Boolean(game.locked);
 
+        gameMode =
+            game.gameMode || "one-line";
+
         updateStatusMessage();
     }
 );
 
 
 function updateStatusMessage() {
-    if (!playerData) return;
+    if (!playerData) {
+        return;
+    }
+
+    const modeName =
+        getModeDisplayName(gameMode);
 
     if (gameStatus === "winner") {
         showPlayerStatus(
-            "A winner has been announced.",
+            `A ${modeName} winner has been announced.`,
             "#fde68a"
         );
 
@@ -444,7 +571,7 @@ function updateStatusMessage() {
 
     if (gameStatus === "playing") {
         showPlayerStatus(
-            "Game in progress — good luck!",
+            `${modeName} game in progress — good luck!`,
             "#86efac"
         );
 
@@ -453,7 +580,7 @@ function updateStatusMessage() {
 
     if (gameStatus === "joining") {
         showPlayerStatus(
-            "Waiting for the host to start the game.",
+            `Waiting for the host. Mode: ${modeName}.`,
             "#bfdbfe"
         );
 
@@ -468,50 +595,61 @@ function updateStatusMessage() {
 
 
 // ======================================
-// CHECK FOR BINGO
+// VALID NUMBER CHECK
+// ======================================
+
+function numberIsValid(index) {
+    const value = bingoCard[index];
+
+    if (value === "FREE") {
+        return true;
+    }
+
+    const number = Number(value);
+
+    return (
+        markedNumbers.includes(number) &&
+        calledNumbers.includes(number)
+    );
+}
+
+
+// ======================================
+// GAME MODE WIN CHECK
 // ======================================
 
 function hasValidBingo() {
-    const markedSet =
-        new Set(markedNumbers);
-
-    function lineIsComplete(indexes) {
-        return indexes.every((index) => {
-            const value = bingoCard[index];
-
-            if (value === "FREE") {
-                return true;
-            }
-
-            const number = Number(value);
-
-            return (
-                markedSet.has(number) &&
-                calledNumbers.includes(number)
-            );
-        });
-    }
-
-    const winningLines = [
+    const rows = [
         [0, 1, 2, 3, 4],
         [5, 6, 7, 8, 9],
         [10, 11, 12, 13, 14],
         [15, 16, 17, 18, 19],
-        [20, 21, 22, 23, 24],
-
-        [0, 5, 10, 15, 20],
-        [1, 6, 11, 16, 21],
-        [2, 7, 12, 17, 22],
-        [3, 8, 13, 18, 23],
-        [4, 9, 14, 19, 24],
-
-        [0, 6, 12, 18, 24],
-        [4, 8, 12, 16, 20]
+        [20, 21, 22, 23, 24]
     ];
 
-    return winningLines.some(
-        lineIsComplete
-    );
+    const completedRows =
+        rows.filter((row) =>
+            row.every(numberIsValid)
+        ).length;
+
+    if (gameMode === "two-lines") {
+        return completedRows >= 2;
+    }
+
+    if (gameMode === "four-corners") {
+        return [0, 4, 20, 24]
+            .every(numberIsValid);
+    }
+
+    if (gameMode === "full-house") {
+        return bingoCard.every(
+            (_, index) =>
+                numberIsValid(index)
+        );
+    }
+
+    // Default: one horizontal line.
+    return completedRows >= 1;
 }
 
 
@@ -521,8 +659,9 @@ function hasValidBingo() {
 
 window.claimBingo =
     async function claimBingo() {
-
-        if (!playerData) return;
+        if (!playerData) {
+            return;
+        }
 
         if (gameStatus !== "playing") {
             showPlayerStatus(
@@ -544,7 +683,7 @@ window.claimBingo =
 
         if (!hasValidBingo()) {
             showPlayerStatus(
-                "That is not a valid Bingo yet.",
+                `That is not a valid ${getModeDisplayName(gameMode)} yet.`,
                 "#fca5a5"
             );
 
@@ -556,9 +695,13 @@ window.claimBingo =
         }
 
         try {
-            const winnerSnapshot = await get(
-                ref(database, "bingo/winner")
-            );
+            const winnerSnapshot =
+                await get(
+                    ref(
+                        database,
+                        "bingo/winner"
+                    )
+                );
 
             if (winnerSnapshot.exists()) {
                 showPlayerStatus(
@@ -570,18 +713,24 @@ window.claimBingo =
             }
 
             await set(
-                ref(database, "bingo/winner"),
+                ref(
+                    database,
+                    "bingo/winner"
+                ),
                 {
                     playerId,
 
                     name:
-                        playerData.name || playerId,
+                        playerData.name ||
+                        playerId,
 
                     card: bingoCard,
 
                     marked: markedNumbers,
 
                     gameId: currentGameId,
+
+                    gameMode,
 
                     claimedAt: Date.now(),
 
@@ -598,7 +747,7 @@ window.claimBingo =
             );
 
             showPlayerStatus(
-                "Bingo confirmed!",
+                `${getModeDisplayName(gameMode)} confirmed!`,
                 "#86efac"
             );
 
@@ -615,7 +764,8 @@ window.claimBingo =
 
         } finally {
             if (bingoButton) {
-                bingoButton.disabled = false;
+                bingoButton.disabled =
+                    false;
             }
         }
     };
@@ -628,26 +778,34 @@ window.claimBingo =
 onValue(
     ref(database, "bingo/winner"),
     (snapshot) => {
-        const winner = snapshot.val();
+        const winner =
+            snapshot.val();
 
         if (!winner) {
-            winnerPopup?.classList.remove("show");
+            winnerPopup?.classList.remove(
+                "show"
+            );
+
             return;
         }
 
         if (winnerName) {
             winnerName.textContent =
-                `${winner.name || "A player"} has won!`;
+                `${winner.name || "A player"} has won ${getModeDisplayName(winner.gameMode || gameMode)}!`;
         }
 
-        winnerPopup?.classList.add("show");
+        winnerPopup?.classList.add(
+            "show"
+        );
     }
 );
 
 
 window.closeWinnerPopup =
     function closeWinnerPopup() {
-        winnerPopup?.classList.remove("show");
+        winnerPopup?.classList.remove(
+            "show"
+        );
     };
 
 
