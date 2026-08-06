@@ -10,7 +10,11 @@ const els = {
   bingo: document.getElementById("bingoButton"),
   popup: document.getElementById("winnerPopup"),
   winnerName: document.getElementById("winnerName"),
-  closeWinner: document.getElementById("closeWinnerButton")
+  closeWinner: document.getElementById("closeWinnerButton"),
+  stageBadge: document.getElementById("stageBadge"),
+  targetInstruction: document.getElementById("targetInstruction"),
+  calledCount: document.getElementById("playerCalledCount"),
+  dabbedCount: document.getElementById("playerDabbedCount")
 };
 
 let player = null;
@@ -32,6 +36,24 @@ function stageName(stage) {
 
 function activeTarget() {
   return state.gameMode === "progressive" ? state.progressiveStage : state.gameMode;
+}
+
+
+function targetInstruction(target) {
+  return ({
+    "one-line": "Complete any horizontal line.",
+    "two-lines": "Complete any two horizontal lines.",
+    "four-corners": "Dab all four corner numbers.",
+    "full-house": "Dab every number on your card."
+  })[target] || "Complete any horizontal line.";
+}
+
+function updatePlayerDashboard() {
+  const target = activeTarget();
+  if (els.stageBadge) els.stageBadge.textContent = stageName(target);
+  if (els.targetInstruction) els.targetInstruction.textContent = targetInstruction(target);
+  if (els.calledCount) els.calledCount.textContent = String(called.length);
+  if (els.dabbedCount) els.dabbedCount.textContent = String(marked.length);
 }
 
 function arrayOf(data) {
@@ -58,6 +80,7 @@ function clearStorage() {
 function drawCard() {
   if (card.length !== 25) return;
   els.card.innerHTML = "";
+  updatePlayerDashboard();
   card.forEach((value) => {
     const square = document.createElement("div");
     square.className = "number";
@@ -87,6 +110,7 @@ async function dab(number) {
     ? marked.filter((value) => value !== number)
     : [...marked, number].sort((a, b) => a - b);
   drawCard();
+  updatePlayerDashboard();
   try {
     await set(ref(database, `bingo/players/${playerId}/marked`), marked.length ? marked : null);
   } catch (error) {
@@ -191,6 +215,7 @@ onValue(ref(database, "bingo/currentCall"), (snap) => {
 onValue(ref(database, "bingo/calledNumbers"), (snap) => {
   called = [...new Set(Object.values(snap.val() || {}).map(numberFrom).filter(Number.isFinite))];
   drawCard();
+  updatePlayerDashboard();
 });
 
 onValue(ref(database, "bingo"), (snap) => {
@@ -202,6 +227,7 @@ onValue(ref(database, "bingo"), (snap) => {
     progressiveStage: game.progressiveStage || "one-line"
   };
 
+  updatePlayerDashboard();
   const target = stageName(activeTarget());
   if (state.status === "playing") {
     show(`Playing for ${target} — good luck!`, "success");

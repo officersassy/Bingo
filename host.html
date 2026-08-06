@@ -6,55 +6,125 @@
   <title>Bingo Host</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="host-page">
   <div class="background"></div>
-  <main class="host-container">
-    <h1>🎤 BINGO HOST</h1>
-    <div id="gameStatus" class="status-pill">Loading game…</div>
 
-    <section class="host-grid">
-      <div class="panel current-panel">
-        <h2>Current Number</h2>
+  <main class="app-shell host-shell">
+    <header class="app-header">
+      <div>
+        <span class="eyebrow">Live event control</span>
+        <h1>🎤 Bingo Host</h1>
+      </div>
+      <div id="gameStatus" class="status-pill">Loading game…</div>
+    </header>
+
+    <section class="stats-grid" aria-label="Game statistics">
+      <article class="stat-card">
+        <span class="stat-label">Players</span>
+        <strong id="statPlayers" class="stat-value">0</strong>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Called</span>
+        <strong id="statCalled" class="stat-value">0</strong>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Remaining</span>
+        <strong id="statRemaining" class="stat-value">75</strong>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Elapsed</span>
+        <strong id="statElapsed" class="stat-value stat-time">00:00</strong>
+      </article>
+      <article class="stat-card">
+        <span class="stat-label">Average call</span>
+        <strong id="statAverage" class="stat-value stat-time">—</strong>
+      </article>
+      <article class="stat-card accent-stat">
+        <span class="stat-label">Current target</span>
+        <strong id="statStage" class="stat-value stat-stage">One Line</strong>
+      </article>
+    </section>
+
+    <section class="host-dashboard">
+      <article class="panel current-panel hero-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="panel-kicker">Live ball</span>
+            <h2>Current Number</h2>
+          </div>
+        </div>
         <div id="currentNumber" class="current-number">--</div>
-      </div>
-      <div class="panel">
-        <h2>Players Joined</h2>
-        <div id="playerCount" class="big-count">0</div>
+        <div class="last-call-strip">
+          <span>Previous calls</span>
+          <div id="lastCalls" class="called-list compact-calls"></div>
+        </div>
+      </article>
+
+      <article class="panel players-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="panel-kicker">Attendance</span>
+            <h2>Players Joined</h2>
+          </div>
+          <div id="playerCount" class="count-badge">0</div>
+        </div>
         <div id="playerList" class="player-list">No players yet.</div>
+      </article>
+
+      <article class="panel mode-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="panel-kicker">Round format</span>
+            <h2>Game Mode</h2>
+          </div>
+        </div>
+        <select id="gameModeSelect" class="mode-select">
+          <option value="progressive">Progressive: 1 Line → 2 Lines → Full House</option>
+          <option value="one-line">One Line Only</option>
+          <option value="two-lines">Two Lines Only</option>
+          <option value="four-corners">Four Corners</option>
+          <option value="full-house">Full House Only</option>
+        </select>
+        <p id="gameModeDescription" class="helper-text"></p>
+      </article>
+
+      <article class="panel controls-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="panel-kicker">Event controls</span>
+            <h2>Host Actions</h2>
+          </div>
+        </div>
+        <div class="host-buttons">
+          <button id="openJoiningButton" type="button">🟢 Open Joining</button>
+          <button id="startGameButton" class="success" type="button">▶ Start Game</button>
+          <button id="callNumberButton" class="primary-action" type="button">🎱 Call Next Number</button>
+          <button id="resetGameButton" class="danger" type="button">↻ Force Restart</button>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel history-panel">
+      <div class="panel-heading">
+        <div>
+          <span class="panel-kicker">Complete record</span>
+          <h2>All Called Numbers</h2>
+        </div>
+        <span id="historySummary" class="subtle-label">0 of 75</span>
       </div>
+      <div id="calledNumbers" class="called-list all-calls"></div>
     </section>
-
-    <section class="panel">
-      <h2>Game Mode</h2>
-      <select id="gameModeSelect">
-        <option value="progressive">Progressive: 1 Line → 2 Lines → Full House</option>
-        <option value="one-line">One Line Only</option>
-        <option value="two-lines">Two Lines Only</option>
-        <option value="four-corners">Four Corners</option>
-        <option value="full-house">Full House Only</option>
-      </select>
-      <p id="gameModeDescription" class="helper-text"></p>
-    </section>
-
-    <div class="host-buttons">
-      <button id="openJoiningButton" type="button">🟢 Open Joining</button>
-      <button id="startGameButton" class="success" type="button">▶️ Start Game</button>
-      <button id="callNumberButton" type="button">🎱 Call Next Number</button>
-      <button id="resetGameButton" class="danger" type="button">🔄 Force Restart</button>
-    </div>
-
-    <section class="panel"><h2>Last 10 Calls</h2><div id="lastCalls" class="called-list"></div></section>
-    <section class="panel"><h2>All Called Numbers</h2><div id="calledNumbers" class="called-list"></div></section>
   </main>
 
   <div id="winnerPopup" class="winner-popup">
     <div class="winner-box">
-      <div class="winner-title">🎉 BINGO WINNER 🎉</div>
+      <div class="winner-trophy">🏆</div>
+      <div class="winner-title">Bingo Winner</div>
       <div id="winnerName" class="winner-name">We have a winner!</div>
       <div class="action-buttons">
         <button id="closeWinnerButton" type="button">Close Popup</button>
         <button id="winnerContinueButton" class="success" type="button">Continue Game</button>
-        <button id="winnerRestartButton" class="danger" type="button">🔄 Start New Game</button>
+        <button id="winnerRestartButton" class="danger" type="button">Start New Game</button>
       </div>
     </div>
   </div>

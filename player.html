@@ -6,32 +6,76 @@
   <title>Bingo Player</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="player-page">
   <div class="background"></div>
-  <main class="player-container">
-    <h1>🎱 BINGO PLAYER</h1>
-    <h2 id="welcomePlayer">Loading your card…</h2>
-    <div id="playerStatus" class="status-pill">Connecting…</div>
-    <section class="panel current-panel">
-      <h3>Current Number</h3>
-      <div id="playerCurrent" class="current-number">--</div>
-    </section>
-    <section class="bingo" aria-label="Bingo card">
-      <div class="bingo-headers">
-        <div class="header">B</div><div class="header">I</div><div class="header">N</div><div class="header">G</div><div class="header">O</div>
+
+  <main class="app-shell player-shell">
+    <header class="player-header">
+      <div>
+        <span class="eyebrow">Your live Bingo card</span>
+        <h1>🎱 Bingo Night</h1>
+        <h2 id="welcomePlayer" class="welcome-player">Loading your card…</h2>
       </div>
-      <div id="card" class="card"></div>
+      <div class="player-header-actions">
+        <div id="stageBadge" class="stage-badge">One Line</div>
+        <a class="icon-link" href="index.html" aria-label="Return home">⌂</a>
+      </div>
+    </header>
+
+    <div id="playerStatus" class="status-pill full-status">Connecting…</div>
+
+    <section class="player-layout">
+      <article class="current-call-card">
+        <span class="panel-kicker">Now calling</span>
+        <div id="playerCurrent" class="player-current-number">--</div>
+        <p id="targetInstruction" class="target-instruction">Complete any horizontal line.</p>
+        <div class="player-progress">
+          <div>
+            <span class="progress-label">Numbers called</span>
+            <strong id="playerCalledCount">0</strong>
+          </div>
+          <div>
+            <span class="progress-label">Numbers dabbed</span>
+            <strong id="playerDabbedCount">0</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="ticket-panel">
+        <div class="ticket-heading">
+          <div>
+            <span class="panel-kicker">Locked ticket</span>
+            <h2>Your Bingo Card</h2>
+          </div>
+          <div class="legend">
+            <span><i class="legend-dot called-dot"></i>Called</span>
+            <span><i class="legend-dot dabbed-dot"></i>Dabbed</span>
+          </div>
+        </div>
+
+        <section class="bingo" aria-label="Bingo card">
+          <div class="bingo-headers">
+            <div class="header">B</div>
+            <div class="header">I</div>
+            <div class="header">N</div>
+            <div class="header">G</div>
+            <div class="header">O</div>
+          </div>
+          <div id="card" class="card"></div>
+        </section>
+
+        <div class="player-actions">
+          <button id="bingoButton" class="claim-button" type="button">🏆 Claim Bingo</button>
+        </div>
+        <p class="helper-text centered-help">Only called numbers can be dabbed. Gold means called; blue with a tick means dabbed.</p>
+      </article>
     </section>
-    <div class="action-buttons">
-      <button id="bingoButton" type="button">🎉 BINGO!</button>
-      <a class="button-link secondary" href="index.html">← Home</a>
-    </div>
-    <p class="helper-text">Gold means called. Click a gold number to dab it blue.</p>
   </main>
 
   <div id="winnerPopup" class="winner-popup">
     <div class="winner-box">
-      <div class="winner-title">🎉 BINGO WINNER 🎉</div>
+      <div class="winner-trophy">🏆</div>
+      <div class="winner-title">Bingo Winner</div>
       <div id="winnerName" class="winner-name">We have a winner!</div>
       <button id="closeWinnerButton" type="button">Close</button>
     </div>

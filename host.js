@@ -24,7 +24,14 @@ const els = {
   winnerName: document.getElementById("winnerName"),
   closeWinner: document.getElementById("closeWinnerButton"),
   winnerContinue: document.getElementById("winnerContinueButton"),
-  winnerRestart: document.getElementById("winnerRestartButton")
+  winnerRestart: document.getElementById("winnerRestartButton"),
+  statPlayers: document.getElementById("statPlayers"),
+  statCalled: document.getElementById("statCalled"),
+  statRemaining: document.getElementById("statRemaining"),
+  statElapsed: document.getElementById("statElapsed"),
+  statAverage: document.getElementById("statAverage"),
+  statStage: document.getElementById("statStage"),
+  historySummary: document.getElementById("historySummary")
 };
 
 let state = {
@@ -35,7 +42,9 @@ let state = {
   progressiveStage: "one-line"
 };
 let calledNumbers = [];
+let callTimes = [];
 let currentWinner = null;
+let startedAt = null;
 
 function randomNumbers(min, max, count) {
   const out = [];
@@ -104,6 +113,39 @@ function modeDescription(mode) {
   })[mode] || "One continuous progressive round.";
 }
 
+
+function formatDuration(milliseconds) {
+  if (!milliseconds || milliseconds < 0) return "00:00";
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function updateStatistics() {
+  const playerTotal = Number(els.count?.textContent || 0);
+  if (els.statPlayers) els.statPlayers.textContent = String(playerTotal);
+  if (els.statCalled) els.statCalled.textContent = String(calledNumbers.length);
+  if (els.statRemaining) els.statRemaining.textContent = String(Math.max(0, 75 - calledNumbers.length));
+  if (els.statStage) els.statStage.textContent = stageName(activeTarget());
+  if (els.historySummary) els.historySummary.textContent = `${calledNumbers.length} of 75`;
+
+  if (els.statElapsed) {
+    const running = startedAt && ["playing", "stage-winner", "winner"].includes(state.status);
+    els.statElapsed.textContent = running ? formatDuration(Date.now() - startedAt) : "00:00";
+  }
+
+  if (els.statAverage) {
+    if (callTimes.length < 2) {
+      els.statAverage.textContent = "—";
+    } else {
+      const sorted = [...callTimes].sort((a, b) => a - b);
+      const averageMs = (sorted[sorted.length - 1] - sorted[0]) / (sorted.length - 1);
+      els.statAverage.textContent = `${Math.max(1, Math.round(averageMs / 1000))}s`;
+    }
+  }
+}
+
 function updateControls() {
   els.open.disabled = state.status === "joining" && state.joiningOpen;
   els.start.disabled = state.status === "playing" || state.status === "stage-winner" || state.status === "winner";
@@ -158,12 +200,15 @@ onValue(bingoRef, (snap) => {
   } else {
     els.status.textContent = `${state.joiningOpen ? "Joining open" : "Joining closed"} — ${modeName(state.gameMode)}`;
   }
+  startedAt = Number(game.startedAt || game.createdAt || 0) || null;
   updateControls();
+  updateStatistics();
 });
 
 onValue(playersRef, (snap) => {
   const entries = Object.entries(snap.val() || {});
   els.count.textContent = String(entries.length);
+  updateStatistics();
   els.list.innerHTML = "";
   if (!entries.length) {
     els.list.textContent = "No players yet.";
@@ -201,6 +246,7 @@ onValue(currentRef, (snap) => {
 onValue(callsRef, (snap) => {
   const calls = Object.values(snap.val() || {});
   calledNumbers = [...new Set(calls.map(numberFrom).filter(Number.isFinite))];
+  callTimes = calls.map((call) => Number(call?.calledAt || call?.time || 0)).filter((time) => time > 0);
   const newest = [...calls].reverse();
   const draw = (target, list) => {
     target.innerHTML = "";
@@ -214,6 +260,7 @@ onValue(callsRef, (snap) => {
   draw(els.last, newest.slice(0, 10));
   draw(els.all, newest);
   updateControls();
+  updateStatistics();
 });
 
 onValue(winnerRef, (snap) => {
@@ -350,6 +397,8 @@ els.winnerContinue.addEventListener("click", continueProgressiveGame);
 els.reset.addEventListener("click", resetGame);
 els.winnerRestart.addEventListener("click", resetGame);
 els.closeWinner.addEventListener("click", () => els.popup.classList.remove("show"));
+
+setInterval(updateStatistics, 1000);
 
 initialise().catch((error) => {
   console.error(error);
