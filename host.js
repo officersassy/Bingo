@@ -23,7 +23,7 @@ const els = {
   statStage: document.getElementById("statStage"), historySummary: document.getElementById("historySummary")
 };
 
-let state = { gameId: null, status: "joining", joiningOpen: true, locked: false, gameMode: "progressive", progressiveStage: "one-line" };
+let state = { gameId: null, status: "joining", joiningOpen: true, locked: false, gameMode: "progressive", progressiveStage: "one-line", drawOrder: [], paceProfile: null };
 let calledNumbers = [];
 let callTimes = [];
 let currentClaims = [];
@@ -102,6 +102,105 @@ function modeDescription(mode) {
     "full-house":"90-ball ticket. Dab all 15 numbers on the ticket."
   })[mode] || "Choose a game mode.";
 }
+
+function shuffleNumbers(max) {
+  const numbers=Array.from({length:max},(_,index)=>index+1);
+  for(let index=numbers.length-1;index>0;index-=1){
+    const swapIndex=Math.floor(Math.random()*(index+1));
+    [numbers[index],numbers[swapIndex]]=[numbers[swapIndex],numbers[index]];
+  }
+  return numbers;
+}
+
+function card90Milestones(card,order) {
+  const position=new Map(order.map((number,index)=>[number,index+1]));
+  const rows=[[0,1,2,3,4,5,6,7,8],[9,10,11,12,13,14,15,16,17],[18,19,20,21,22,23,24,25,26]];
+  const rowFinishes=rows.map((row)=>{
+    const numbers=row.map((index)=>card[index]).filter((value)=>value!==BLANK&&value!==""&&value!==null).map(Number);
+    return Math.max(...numbers.map((number)=>position.get(number)||90));
+  }).sort((a,b)=>a-b);
+
+  return {
+    oneLine:rowFinishes[0],
+    twoLines:rowFinishes[1],
+    fullHouse:rowFinishes[2]
+  };
+}
+
+function earliest90Milestones(players,order) {
+  const results=Object.values(players)
+    .filter((player)=>String(player.cardType||"90")==="90"&&Array.isArray(player.card)&&player.card.length===27)
+    .map((player)=>card90Milestones(player.card,order));
+
+  if(!results.length)return null;
+
+  return {
+    oneLine:Math.min(...results.map((result)=>result.oneLine)),
+    twoLines:Math.min(...results.map((result)=>result.twoLines)),
+    fullHouse:Math.min(...results.map((result)=>result.fullHouse))
+  };
+}
+
+function choosePaceProfile() {
+  const roll=Math.random();
+  if(roll<0.25)return {
+    name:"quick",
+    oneLine:[25,42],
+    twoLines:[45,62],
+    fullHouse:[65,80]
+  };
+  if(roll<0.75)return {
+    name:"standard",
+    oneLine:[35,52],
+    twoLines:[52,68],
+    fullHouse:[70,84]
+  };
+  return {
+    name:"slow",
+    oneLine:[45,60],
+    twoLines:[60,75],
+    fullHouse:[78,89]
+  };
+}
+
+function milestoneDistance(value,range) {
+  if(value<range[0])return range[0]-value;
+  if(value>range[1])return value-range[1];
+  return 0;
+}
+
+function createBalanced90Draw(players) {
+  const profile=choosePaceProfile();
+  let bestOrder=shuffleNumbers(90);
+  let bestScore=Infinity;
+  let bestMilestones=null;
+
+  for(let attempt=0;attempt<5000;attempt+=1){
+    const order=shuffleNumbers(90);
+    const milestones=earliest90Milestones(players,order);
+    if(!milestones){
+      return {order,profile:"pure-random",milestones:null};
+    }
+
+    const score=
+      milestoneDistance(milestones.oneLine,profile.oneLine)**2+
+      milestoneDistance(milestones.twoLines,profile.twoLines)**2+
+      milestoneDistance(milestones.fullHouse,profile.fullHouse)**2;
+
+    if(score<bestScore){
+      bestScore=score;
+      bestOrder=order;
+      bestMilestones=milestones;
+    }
+
+    if(score===0){
+      return {order,profile:profile.name,milestones};
+    }
+  }
+
+  return {order:bestOrder,profile:profile.name,milestones:bestMilestones};
+}
+
 function formatDuration(ms) {
   if (!ms || ms<0) return "00:00";
   const total=Math.floor(ms/1000), mins=Math.floor(total/60), secs=total%60;
@@ -166,7 +265,7 @@ async function rebuildPlayersForMode(mode) {
 
 onValue(bingoRef,(snap)=>{
   const game=snap.val()||{};
-  state={gameId:game.gameId||null,status:game.status||"joining",joiningOpen:game.joiningOpen!==false,locked:Boolean(game.locked),gameMode:game.gameMode||"progressive",progressiveStage:game.progressiveStage||"one-line"};
+  state={gameId:game.gameId||null,status:game.status||"joining",joiningOpen:game.joiningOpen!==false,locked:Boolean(game.locked),gameMode:game.gameMode||"progressive",progressiveStage:game.progressiveStage||"one-line",drawOrder:Array.isArray(game.drawOrder)?game.drawOrder:[],paceProfile:game.paceProfile||null};
   const target=stageName(activeTarget());
   if (state.status==="playing") els.status.textContent=`${modeName(state.gameMode)} — playing for ${target}`;
   else if (state.status==="stage-winner") els.status.textContent=`${target} winner announced — continue when ready`;
@@ -264,15 +363,64 @@ els.mode.addEventListener("change",async()=>{
 
 els.open.addEventListener("click",()=>update(bingoRef,{status:"joining",joiningOpen:true,locked:false}));
 els.start.addEventListener("click",async()=>{
-  const players=await get(playersRef); if(!players.exists()){alert("No players have joined yet.");return;}
-  await update(bingoRef,{status:"playing",joiningOpen:false,locked:false,gameMode:els.mode.value,progressiveStage:"one-line",startedAt:Date.now()});
+  const playersSnap=await get(playersRef);
+  if(!playersSnap.exists()){alert("No players have joined yet.");return;}
+
+  const mode=els.mode.value;
+  const patch={
+    status:"playing",
+    joiningOpen:false,
+    locked:false,
+    gameMode:mode,
+    progressiveStage:"one-line",
+    startedAt:Date.now()
+  };
+
+  if(is90Mode(mode)){
+    const balanced=createBalanced90Draw(playersSnap.val()||{});
+    patch.drawOrder=balanced.order;
+    patch.paceProfile=balanced.profile;
+    patch.paceMilestones=balanced.milestones||null;
+  }else{
+    patch.drawOrder=null;
+    patch.paceProfile=null;
+    patch.paceMilestones=null;
+  }
+
+  await update(bingoRef,patch);
 });
 els.call.addEventListener("click",async()=>{
   if(state.status!=="playing"||state.locked)return;
-  const total=maxBall(); if(calledNumbers.length>=total){alert(`All ${total} numbers have been called.`);return;}
-  let number; do{number=Math.floor(Math.random()*total)+1;}while(calledNumbers.includes(number));
-  const data={call:displayCall(number),number,calledAt:Date.now()}; els.call.disabled=true;
-  try{await set(currentRef,data);await push(callsRef,data);}finally{updateControls();}
+
+  const total=maxBall();
+  if(calledNumbers.length>=total){
+    alert(`All ${total} numbers have been called.`);
+    return;
+  }
+
+  let number;
+
+  if(is90Mode(state.gameMode)&&Array.isArray(state.drawOrder)&&state.drawOrder.length===90){
+    number=Number(state.drawOrder[calledNumbers.length]);
+  }else{
+    do{
+      number=Math.floor(Math.random()*total)+1;
+    }while(calledNumbers.includes(number));
+  }
+
+  if(!Number.isFinite(number)||calledNumbers.includes(number)){
+    const remaining=Array.from({length:total},(_,index)=>index+1).filter((candidate)=>!calledNumbers.includes(candidate));
+    number=remaining[Math.floor(Math.random()*remaining.length)];
+  }
+
+  const data={call:displayCall(number),number,calledAt:Date.now()};
+  els.call.disabled=true;
+  try{
+    await set(currentRef,data);
+    await push(callsRef,data);
+  }finally{
+    updateControls();
+  }
 });
 
 async function continueProgressiveGame(){
