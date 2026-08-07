@@ -2,356 +2,155 @@ import { database } from "./firebase.js";
 import { ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const playerId = localStorage.getItem("bingoPlayerId") || localStorage.getItem("bingoPlayer");
+const BLANK = "__BLANK__";
 const els = {
-  welcome: document.getElementById("welcomePlayer"),
-  status: document.getElementById("playerStatus"),
-  current: document.getElementById("playerCurrent"),
-  card: document.getElementById("card"),
-  bingo: document.getElementById("bingoButton"),
-  popup: document.getElementById("winnerPopup"),
-  winnerName: document.getElementById("winnerName"),
-  closeWinner: document.getElementById("closeWinnerButton"),
-  stageBadge: document.getElementById("stageBadge"),
-  targetInstruction: document.getElementById("targetInstruction"),
-  calledCount: document.getElementById("playerCalledCount"),
-  dabbedCount: document.getElementById("playerDabbedCount")
+  welcome: document.getElementById("welcomePlayer"), status: document.getElementById("playerStatus"),
+  current: document.getElementById("playerCurrent"), card: document.getElementById("card"),
+  bingo: document.getElementById("bingoButton"), popup: document.getElementById("winnerPopup"),
+  winnerName: document.getElementById("winnerName"), closeWinner: document.getElementById("closeWinnerButton"),
+  stageBadge: document.getElementById("stageBadge"), targetInstruction: document.getElementById("targetInstruction"),
+  calledCount: document.getElementById("playerCalledCount"), dabbedCount: document.getElementById("playerDabbedCount"),
+  bingoSection: document.getElementById("bingoSection"), bingoHeaders: document.getElementById("bingoHeaders")
 };
 
 let player = null;
 let card = [];
+let cardType = "75";
 let marked = [];
 let called = [];
+let state = { status: "joining", locked: false, gameMode: "progressive", progressiveStage: "one-line" };
 let gameId = null;
 let lastWinnerKey = null;
-let state = { status: "joining", locked: false, gameMode: "progressive", progressiveStage: "one-line" };
 
-
-function shuffle(values) {
-  const result = [...values];
-  for (let index = result.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+function is90Mode(mode) { return mode === "progressive" || mode === "full-house"; }
+function stageName(stage) { return ({"one-line":"One Line","two-lines":"Two Lines","full-house":"Full House","four-corners":"Four Corners"})[stage] || "One Line"; }
+function activeTarget() { return state.gameMode === "progressive" ? state.progressiveStage : state.gameMode; }
+function targetInstruction(target) {
+  if (is90Mode(state.gameMode)) {
+    return ({"one-line":"Complete all 5 numbers on any one row.","two-lines":"Complete any two rows on your 90-ball ticket.","full-house":"Dab all 15 numbers on your 90-ball ticket."})[target] || "Complete one row.";
   }
-  return result;
+  return ({"one-line":"Complete any horizontal line.","two-lines":"Complete any two horizontal lines.","four-corners":"Dab all four corner numbers.","full-house":"Dab every number on your card."})[target] || "Complete any horizontal line.";
 }
-
-function columnRange(column) {
-  if (column === 0) return [1, 9];
-  if (column === 8) return [80, 90];
-  return [column * 10, column * 10 + 9];
+function updatePlayerDashboard() {
+  const target=activeTarget();
+  if (els.stageBadge) els.stageBadge.textContent=`${stageName(target)} · ${cardType}-ball`;
+  if (els.targetInstruction) els.targetInstruction.textContent=targetInstruction(target);
+  if (els.calledCount) els.calledCount.textContent=String(called.length);
+  if (els.dabbedCount) els.dabbedCount.textContent=String(marked.length);
 }
-
-function randomUnique(minimum, maximum, count) {
-  return shuffle(Array.from({ length: maximum - minimum + 1 }, (_, index) => minimum + index))
-    .slice(0, count)
-    .sort((a, b) => a - b);
-}
-
-function create90BallTicket() {
-  for (let attempt = 0; attempt < 5000; attempt += 1) {
-    const columnCounts = Array(9).fill(1);
-    let remaining = 6;
-    while (remaining > 0) {
-      const column = Math.floor(Math.random() * 9);
-      if (columnCounts[column] < 3) {
-        columnCounts[column] += 1;
-        remaining -= 1;
-      }
-    }
-
-    const occupied = Array.from({ length: 3 }, () => Array(9).fill(false));
-    const rowCounts = [0, 0, 0];
-    let valid = true;
-    const order = shuffle(Array.from({ length: 9 }, (_, index) => index))
-      .sort((a, b) => columnCounts[b] - columnCounts[a]);
-
-    for (const column of order) {
-      const count = columnCounts[column];
-      const combinations = count === 3
-        ? [[0, 1, 2]]
-        : count === 2
-          ? shuffle([[0, 1], [0, 2], [1, 2]])
-          : shuffle([[0], [1], [2]]);
-      const choice = combinations.find((combination) =>
-        combination.every((row) => rowCounts[row] < 5)
-      );
-      if (!choice) {
-        valid = false;
-        break;
-      }
-      choice.forEach((row) => {
-        occupied[row][column] = true;
-        rowCounts[row] += 1;
-      });
-    }
-
-    if (!valid || rowCounts.some((count) => count !== 5)) continue;
-
-    const ticket = Array.from({ length: 3 }, () => Array(9).fill("BLANK"));
-    for (let column = 0; column < 9; column += 1) {
-      const rows = [0, 1, 2].filter((row) => occupied[row][column]);
-      const [minimum, maximum] = columnRange(column);
-      const numbers = randomUnique(minimum, maximum, rows.length);
-      rows.forEach((row, index) => {
-        ticket[row][column] = numbers[index];
-      });
-    }
-    return ticket.flat();
-  }
-  throw new Error("Unable to generate a valid 90-ball ticket.");
-}
-
-function isBlank(value) {
-  return value === null || value === undefined || value === "" || value === false || value === 0 || value === "0" || value === "BLANK" || value === "null";
-}
-
-function arrayOf(value) {
-  if (!value) return [];
-  return Array.isArray(value) ? value.flat() : Object.values(value).flat();
-}
-
+function arrayOf(data) { return !data ? [] : (Array.isArray(data) ? data.flat() : Object.values(data).flat()); }
 function numberFrom(call) {
   if (typeof call === "number") return call;
   if (call && typeof call === "object" && Number.isFinite(Number(call.number))) return Number(call.number);
-  const text = typeof call === "string" ? call : call?.call;
-  const match = typeof text === "string" ? text.match(/\d+/) : null;
-  return match ? Number(match[0]) : null;
+  const text=typeof call==="string"?call:call?.call; const match=typeof text==="string"?text.match(/\d+/):null;
+  return match?Number(match[0]):null;
 }
-
-function stageName(stage) {
-  return ({ "one-line": "One Line", "two-lines": "Two Lines", "full-house": "Full House" })[stage] || "One Line";
-}
-
-function activeTarget() {
-  return state.gameMode === "progressive" ? state.progressiveStage : state.gameMode;
-}
-
-function instruction(stage) {
-  return ({
-    "one-line": "Complete all 5 numbers in any one row.",
-    "two-lines": "Complete all numbers in any two rows.",
-    "full-house": "Dab all 15 numbers on your ticket."
-  })[stage] || "Complete any one row.";
-}
-
-function show(message, type = "normal") {
-  els.status.textContent = message;
-  els.status.dataset.type = type;
-}
-
-function updatePlayerDashboard() {
-  const target = activeTarget();
-  els.stageBadge.textContent = stageName(target);
-  els.targetInstruction.textContent = instruction(target);
-  els.calledCount.textContent = String(called.length);
-  els.dabbedCount.textContent = String(marked.length);
-}
-
-function clearStorage() {
-  ["bingoPlayerId", "bingoPlayer", "bingoPlayerName", "bingoGameId"].forEach((key) => localStorage.removeItem(key));
-}
+function show(message,type="") { els.status.textContent=message; els.status.dataset.type=type; }
+function clearStorage() { ["bingoPlayerId","bingoPlayer","bingoPlayerName","bingoGameId"].forEach((key)=>localStorage.removeItem(key)); }
 
 function drawCard() {
-  if (card.length !== 27) return;
-  els.card.innerHTML = "";
+  const expected=cardType==="90"?27:25;
+  if(card.length!==expected)return;
+  els.card.innerHTML="";
   updatePlayerDashboard();
-  card.forEach((value) => {
-    const square = document.createElement("div");
-    square.className = "number";
-    if (isBlank(value)) {
-      square.classList.add("blank");
-      square.setAttribute("aria-hidden", "true");
-    } else {
-      const number = Number(value);
-      square.textContent = String(number);
-      if (called.includes(number)) square.classList.add("called");
-      if (marked.includes(number)) square.classList.add("selected");
-      square.addEventListener("click", () => dab(number));
+  els.bingoSection?.classList.toggle("card-90",cardType==="90");
+  els.card.classList.toggle("card-90-grid",cardType==="90");
+  if(els.bingoHeaders) els.bingoHeaders.style.display=cardType==="90"?"none":"grid";
+
+  card.forEach((value)=>{
+    const square=document.createElement("div"); square.className="number";
+    if(value===BLANK || value==="" || value===null){ square.classList.add("blank"); square.setAttribute("aria-hidden","true"); els.card.appendChild(square); return; }
+    square.textContent=value;
+    if(value==="FREE") square.classList.add("free");
+    else {
+      const number=Number(value);
+      if(called.includes(number))square.classList.add("called");
+      if(marked.includes(number))square.classList.add("selected");
+      square.addEventListener("click",()=>dab(number));
     }
     els.card.appendChild(square);
   });
 }
 
 async function dab(number) {
-  if (state.status !== "playing" || state.locked) {
-    show("The game is not open for dabbing.", "error");
-    return;
-  }
-  if (!called.includes(number)) {
-    show("That number has not been called yet.", "warning");
-    return;
-  }
-  marked = marked.includes(number)
-    ? marked.filter((value) => value !== number)
-    : [...marked, number].sort((a, b) => a - b);
-  drawCard();
-  try {
-    await set(ref(database, `bingo/players/${playerId}/marked`), marked.length ? marked : null);
-  } catch (error) {
-    console.error(error);
-    show("Your dab could not be saved.", "error");
-  }
+  if(state.status!=="playing"||state.locked){show("The game is not open for dabbing.","error");return;}
+  if(!called.includes(number)){show("That number has not been called yet.","warning");return;}
+  marked=marked.includes(number)?marked.filter((value)=>value!==number):[...marked,number].sort((a,b)=>a-b);
+  drawCard(); updatePlayerDashboard();
+  try{await set(ref(database,`bingo/players/${playerId}/marked`),marked.length?marked:null);}catch(error){console.error(error);show("Your dab could not be saved.","error");}
 }
 
-function rowComplete(rowIndex) {
-  const row = card.slice(rowIndex * 9, rowIndex * 9 + 9).filter((value) => !isBlank(value));
-  return row.length === 5 && row.every((value) => marked.includes(Number(value)) && called.includes(Number(value)));
+function cellComplete(index) {
+  const value=card[index];
+  if(value===BLANK||value===""||value===null)return true;
+  if(value==="FREE")return true;
+  const number=Number(value);
+  return marked.includes(number)&&called.includes(number);
 }
-
-function validWin() {
-  const target = activeTarget();
-  const completeRows = [0, 1, 2].filter(rowComplete).length;
-  if (target === "two-lines") return completeRows >= 2;
-  if (target === "full-house") {
-    const numbers = card.filter((value) => !isBlank(value)).map(Number);
-    return numbers.length === 15 && numbers.every((number) => marked.includes(number) && called.includes(number));
-  }
-  return completeRows >= 1;
+function validWin75(target) {
+  const rows=[[0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24]];
+  const completeRows=rows.filter((row)=>row.every(cellComplete)).length;
+  if(target==="two-lines")return completeRows>=2;
+  if(target==="four-corners")return [0,4,20,24].every(cellComplete);
+  if(target==="full-house")return card.every((_,index)=>cellComplete(index));
+  return completeRows>=1;
 }
+function validWin90(target) {
+  const rows=[[0,1,2,3,4,5,6,7,8],[9,10,11,12,13,14,15,16,17],[18,19,20,21,22,23,24,25,26]];
+  const completeRows=rows.filter((row)=>row.every(cellComplete)).length;
+  if(target==="two-lines")return completeRows>=2;
+  if(target==="full-house")return card.every((value,index)=>value===BLANK||value===""||value===null||cellComplete(index));
+  return completeRows>=1;
+}
+function validWin(){ const target=activeTarget(); return cardType==="90"?validWin90(target):validWin75(target); }
 
-els.bingo.addEventListener("click", async () => {
-  const target = activeTarget();
-  if (!player || state.status !== "playing" || state.locked) {
-    show("The game is not ready for a Bingo claim.", "warning");
-    return;
-  }
-  if (!validWin()) {
-    show(`That is not a valid ${stageName(target)} yet.`, "error");
-    return;
-  }
-
-  els.bingo.disabled = true;
-  try {
-    const winnerSnap = await get(ref(database, "bingo/winner"));
-    if (winnerSnap.exists()) {
-      show("A winner has already been submitted for this stage.", "warning");
-      return;
-    }
-    const isFinal = state.gameMode !== "progressive" || target === "full-house";
-    await set(ref(database, "bingo/winner"), {
-      playerId,
-      name: player.name || playerId,
-      card,
-      marked,
-      gameId,
-      gameMode: state.gameMode,
-      stage: target,
-      ticketType: "90-ball",
-      claimedAt: Date.now(),
-      verified: true
-    });
-    await update(ref(database, "bingo"), { status: isFinal ? "winner" : "stage-winner", locked: true });
-  } finally {
-    els.bingo.disabled = false;
-  }
+els.bingo.addEventListener("click",async()=>{
+  const target=activeTarget();
+  if(!player||state.status!=="playing"||state.locked){show("The game is not ready for a Bingo claim.","warning");return;}
+  if(!validWin()){show(`That is not a valid ${stageName(target)} yet.`,"error");return;}
+  els.bingo.disabled=true;
+  try{
+    const winnerSnap=await get(ref(database,"bingo/winner"));
+    if(winnerSnap.exists()){show("A winner has already been submitted for this stage.","warning");return;}
+    const isFinal=state.gameMode!=="progressive"||target==="full-house";
+    await set(ref(database,"bingo/winner"),{playerId,name:player.name||playerId,card,cardType,marked,gameId,gameMode:state.gameMode,stage:target,claimedAt:Date.now(),verified:true});
+    await update(ref(database,"bingo"),{status:isFinal?"winner":"stage-winner",locked:true});
+  }finally{els.bingo.disabled=false;}
 });
 
-onValue(ref(database, `bingo/players/${playerId || "missing"}`), (snap) => {
-  if (!playerId || !snap.exists()) {
-    if (playerId) alert("You have been removed from the game.");
-    clearStorage();
-    window.location.href = "join.html";
-    return;
-  }
-  const oldGameId = gameId;
-  player = snap.val();
-  card = arrayOf(player.card);
-  marked = arrayOf(player.marked).map(Number).filter(Number.isFinite);
-  gameId = player.gameId || null;
-  els.welcome.textContent = `Welcome, ${player.name || playerId}`;
-
-  if (card.length !== 27) {
-    const repairedCard = create90BallTicket();
-    card = repairedCard;
-    marked = [];
-    set(ref(database, `bingo/players/${playerId}/card`), repairedCard).catch(console.error);
-    set(ref(database, `bingo/players/${playerId}/marked`), null).catch(console.error);
-    show("Your ticket was repaired automatically. General Sassy has restored order.", "success");
-  } else if (oldGameId && gameId && oldGameId !== gameId) {
-    show("New round: your dabs were cleared and you received a fresh 90-ball ticket!", "success");
-  }
+onValue(ref(database,`bingo/players/${playerId||"missing"}`),(snap)=>{
+  if(!playerId||!snap.exists()){if(playerId)alert("You have been removed from the game.");clearStorage();window.location.href="join.html";return;}
+  const oldGameId=gameId; player=snap.val(); card=arrayOf(player.card); marked=arrayOf(player.marked).map(Number).filter(Number.isFinite);
+  gameId=player.gameId||null; cardType=String(player.cardType||((card.length===27)?"90":"75"));
+  els.welcome.textContent=`Welcome, ${player.name||playerId}`;
+  if(oldGameId&&gameId&&oldGameId!==gameId)show(`New round: your dabs were cleared and you received a fresh ${cardType}-ball card!`,"success");
   drawCard();
 });
 
-onValue(ref(database, "bingo/currentCall"), (snap) => {
-  const value = snap.val();
-  els.current.textContent = value ? String(typeof value === "string" ? value : value.call || value.number || "--") : "--";
-  if (value) {
-    els.current.classList.remove("number-pop");
-    void els.current.offsetWidth;
-    els.current.classList.add("number-pop");
-  }
+onValue(ref(database,"bingo/currentCall"),(snap)=>{
+  const value=snap.val(); els.current.textContent=value?(typeof value==="string"?value:value.call||"--"):"--";
+  if(value){els.current.classList.remove("number-pop");void els.current.offsetWidth;els.current.classList.add("number-pop");}
 });
-
-onValue(ref(database, "bingo/calledNumbers"), (snap) => {
-  called = [...new Set(Object.values(snap.val() || {}).map(numberFrom).filter(Number.isFinite))];
-  drawCard();
+onValue(ref(database,"bingo/calledNumbers"),(snap)=>{called=[...new Set(Object.values(snap.val()||{}).map(numberFrom).filter(Number.isFinite))];drawCard();updatePlayerDashboard();});
+onValue(ref(database,"bingo"),(snap)=>{
+  const game=snap.val()||{}; state={status:game.status||"joining",locked:Boolean(game.locked),gameMode:game.gameMode||"progressive",progressiveStage:game.progressiveStage||"one-line"};
+  updatePlayerDashboard(); const target=stageName(activeTarget());
+  if(state.status==="playing")show(`Playing for ${target} — good luck!`,"success");
+  else if(state.status==="stage-winner")show(`${target} winner announced. Waiting for the host to continue.`,"warning");
+  else if(state.status==="winner")show(`Final ${target} winner announced.`,"warning");
+  else show(`Waiting for host — ${is90Mode(state.gameMode)?"90-ball":"75-ball"} ${state.gameMode==="progressive"?"Progressive Game":target}.`);
 });
-
-onValue(ref(database, "bingo"), (snap) => {
-  const game = snap.val() || {};
-  state = {
-    status: game.status || "joining",
-    locked: Boolean(game.locked),
-    gameMode: game.gameMode === "four-corners" ? "progressive" : (game.gameMode || "progressive"),
-    progressiveStage: game.progressiveStage || "one-line"
-  };
-  updatePlayerDashboard();
-  const target = stageName(activeTarget());
-  if (state.status === "playing") show(`90-ball game: playing for ${target} — good luck!`, "success");
-  else if (state.status === "stage-winner") show(`${target} winner announced. Waiting for the host to continue.`, "warning");
-  else if (state.status === "winner") show(`Final ${target} winner announced.`, "warning");
-  else show(`Waiting for host — 90-ball ${state.gameMode === "progressive" ? "Progressive Game" : target}.`);
+onValue(ref(database,"bingo/winner"),(snap)=>{
+  if(!snap.exists()){els.popup.classList.remove("show");lastWinnerKey=null;return;}
+  const winner=snap.val(),wonStage=winner.stage||activeTarget(); els.winnerName.textContent=`${winner.name||"A player"} has won ${stageName(wonStage)}!`; els.popup.classList.add("show");
+  const key=`${winner.claimedAt||0}-${wonStage}`; if(key!==lastWinnerKey){lastWinnerKey=key;fireConfetti();}
 });
+els.closeWinner.addEventListener("click",()=>els.popup.classList.remove("show"));
 
-onValue(ref(database, "bingo/winner"), (snap) => {
-  if (!snap.exists()) {
-    els.popup.classList.remove("show");
-    lastWinnerKey = null;
-    return;
-  }
-  const winner = snap.val();
-  const wonStage = winner.stage || activeTarget();
-  els.winnerName.textContent = `${winner.name || "A player"} has won ${stageName(wonStage)}!`;
-  els.popup.classList.add("show");
-  const key = `${winner.claimedAt || 0}-${wonStage}`;
-  if (key !== lastWinnerKey) {
-    lastWinnerKey = key;
-    fireConfetti();
-  }
-});
-
-els.closeWinner.addEventListener("click", () => els.popup.classList.remove("show"));
-
-let confettiActive = false;
-function fireConfetti() {
-  if (confettiActive) return;
-  confettiActive = true;
-  const canvas = document.createElement("canvas");
-  canvas.className = "confetti-canvas";
-  document.body.appendChild(canvas);
-  const context = canvas.getContext("2d");
-  const pieces = [];
-  const colours = ["#facc15", "#38bdf8", "#22c55e", "#ef4444", "#a855f7", "#fff"];
-  const resize = () => { canvas.width = innerWidth; canvas.height = innerHeight; };
-  resize();
-  addEventListener("resize", resize);
-  for (const side of [0, innerWidth]) {
-    for (let index = 0; index < 140; index += 1) {
-      const direction = side === 0 ? 1 : -1;
-      pieces.push({ x: side, y: innerHeight * (.65 + Math.random() * .25), vx: direction * (5 + Math.random() * 10), vy: -(8 + Math.random() * 14), g: .22 + Math.random() * .08, r: Math.random() * 6.28, vr: (Math.random() - .5) * .3, w: 6 + Math.random() * 8, h: 4 + Math.random() * 6, colour: colours[Math.floor(Math.random() * colours.length)], life: 1 });
-    }
-  }
-  const start = performance.now();
-  function animate(now) {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    pieces.forEach((piece) => {
-      piece.vy += piece.g; piece.x += piece.vx; piece.y += piece.vy; piece.r += piece.vr;
-      if (now - start > 3500) piece.life -= .02;
-      context.save(); context.globalAlpha = Math.max(piece.life, 0); context.translate(piece.x, piece.y); context.rotate(piece.r); context.fillStyle = piece.colour; context.fillRect(-piece.w / 2, -piece.h / 2, piece.w, piece.h); context.restore();
-    });
-    if (now - start < 6000) requestAnimationFrame(animate);
-    else { removeEventListener("resize", resize); canvas.remove(); confettiActive = false; }
-  }
-  requestAnimationFrame(animate);
+let confettiActive=false;
+function fireConfetti(){
+  if(confettiActive)return;confettiActive=true;const canvas=document.createElement("canvas");canvas.className="confetti-canvas";document.body.appendChild(canvas);const context=canvas.getContext("2d");const pieces=[];const colours=["#facc15","#38bdf8","#22c55e","#ef4444","#a855f7","#fff"];
+  const resize=()=>{canvas.width=innerWidth;canvas.height=innerHeight;};resize();addEventListener("resize",resize);
+  for(const side of [0,innerWidth])for(let index=0;index<140;index+=1)pieces.push({x:side,y:innerHeight*.75,vx:(side===0?1:-1)*(4+Math.random()*10),vy:-(7+Math.random()*13),gravity:.2+Math.random()*.08,rotation:Math.random()*6.28,rotationSpeed:(Math.random()-.5)*.3,colour:colours[Math.floor(Math.random()*colours.length)],width:5+Math.random()*8,height:4+Math.random()*7,alpha:1});
+  const start=performance.now();function frame(now){context.clearRect(0,0,canvas.width,canvas.height);pieces.forEach((piece)=>{piece.vy+=piece.gravity;piece.x+=piece.vx;piece.y+=piece.vy;piece.rotation+=piece.rotationSpeed;if(now-start>3500)piece.alpha-=.02;context.save();context.globalAlpha=Math.max(0,piece.alpha);context.translate(piece.x,piece.y);context.rotate(piece.rotation);context.fillStyle=piece.colour;context.fillRect(-piece.width/2,-piece.height/2,piece.width,piece.height);context.restore();});if(now-start<6000)requestAnimationFrame(frame);else{removeEventListener("resize",resize);canvas.remove();confettiActive=false;}}requestAnimationFrame(frame);
 }
