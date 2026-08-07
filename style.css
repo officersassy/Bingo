@@ -452,3 +452,725 @@ button.mini { min-height: 31px; padding: 5px 10px; border-radius: 9px; font-size
   .card.card-90-grid { gap: 3px; }
   .card.card-90-grid .number { border-width: 1px; border-radius: 6px; font-size: clamp(.68rem, 3.1vw, 1rem); }
 }
+
+
+/* =========================================================
+   NO-PAGE-SCROLL LAYOUT
+   Host and player pages stay inside the viewport. Any large
+   collections scroll inside their own panel instead.
+========================================================= */
+
+.host-page,
+.player-page {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+.host-page .host-shell,
+.player-page .player-shell {
+  height: calc(100dvh - 16px);
+  max-height: calc(100dvh - 16px);
+  margin-top: 8px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.host-page .host-shell {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.host-page .app-header {
+  min-height: 0;
+  padding: 5px 3px 7px;
+}
+
+.host-page .app-header h1 {
+  margin: 0;
+  font-size: clamp(1.65rem, 3vw, 2.45rem);
+}
+
+.host-page .app-header .eyebrow {
+  margin-bottom: 3px;
+}
+
+.host-page .stats-grid {
+  margin: 0;
+  gap: 7px;
+}
+
+.host-page .stat-card {
+  padding: 9px 11px;
+}
+
+.host-page .stat-value {
+  margin-top: 2px;
+  font-size: clamp(1.05rem, 2vw, 1.5rem);
+}
+
+.host-page .stat-stage,
+.host-page .stat-time {
+  font-size: clamp(.9rem, 1.6vw, 1.15rem);
+}
+
+.host-page .host-dashboard {
+  min-height: 0;
+  height: 100%;
+  grid-template-columns: 1.22fr .78fr;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.host-page .panel {
+  min-height: 0;
+  padding: 12px 14px;
+  border-radius: 17px;
+}
+
+.host-page .panel-heading {
+  margin-bottom: 7px;
+}
+
+.host-page .panel-heading h2 {
+  font-size: 1rem;
+}
+
+.host-page .panel-kicker {
+  margin-bottom: 3px;
+  font-size: .62rem;
+}
+
+.host-page .hero-panel {
+  min-height: 0;
+  height: 100%;
+}
+
+.host-page .current-number {
+  width: min(20vh, 155px);
+  border-width: 4px;
+  font-size: clamp(2rem, 5vh, 3.35rem);
+}
+
+.host-page .last-call-strip {
+  margin-top: 6px;
+  padding-top: 6px;
+}
+
+.host-page .compact-calls {
+  max-height: 42px;
+  min-height: 30px;
+}
+
+.host-page .players-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.host-page .player-list {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+}
+
+.host-page .mode-panel,
+.host-page .controls-panel {
+  align-self: stretch;
+}
+
+.host-page .mode-select {
+  min-height: 39px;
+  padding: 7px 10px;
+  font-size: .86rem;
+}
+
+.host-page .mode-panel .helper-text {
+  margin-top: 5px;
+  font-size: .72rem;
+  line-height: 1.25;
+}
+
+.host-page .host-buttons {
+  gap: 6px;
+}
+
+.host-page .host-buttons button {
+  min-height: 37px;
+  padding: 7px 9px;
+  font-size: .79rem;
+}
+
+.host-page .history-panel {
+  margin-top: 0;
+  padding-top: 9px;
+  padding-bottom: 9px;
+  max-height: 104px;
+  overflow: hidden;
+}
+
+.host-page .history-panel .panel-heading {
+  margin-bottom: 4px;
+}
+
+.host-page .all-calls {
+  max-height: 51px;
+  overflow: auto;
+}
+
+.host-page .called {
+  min-width: 40px;
+  min-height: 29px;
+  padding: 4px 7px;
+  font-size: .75rem;
+}
+
+.host-mobile-nav {
+  display: none;
+}
+
+/* Player screen */
+.player-page .player-shell {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 7px;
+}
+
+.player-page .player-header {
+  min-height: 0;
+  padding: 4px 3px 6px;
+}
+
+.player-page .player-header h1 {
+  margin-bottom: 2px;
+  font-size: clamp(1.55rem, 3vw, 2.35rem);
+}
+
+.player-page .welcome-player {
+  margin-top: 2px;
+  font-size: .9rem;
+}
+
+.player-page .full-status {
+  min-height: 34px;
+  margin: 0;
+  padding: 6px 10px;
+  font-size: .82rem;
+}
+
+.player-page .player-layout {
+  min-height: 0;
+  height: 100%;
+  gap: 8px;
+}
+
+.player-page .current-call-card,
+.player-page .ticket-panel {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.player-page .current-call-card {
+  padding: 12px;
+}
+
+.player-page .player-current-number {
+  width: min(19vh, 155px);
+  margin: 6px auto;
+  border-width: 4px;
+  font-size: clamp(2rem, 5vh, 3.3rem);
+}
+
+.player-page .target-instruction {
+  min-height: 0;
+  margin: 2px 0 7px;
+  font-size: .82rem;
+  line-height: 1.25;
+}
+
+.player-page .player-progress {
+  gap: 5px;
+}
+
+.player-page .player-progress > div {
+  padding: 7px;
+  border-radius: 10px;
+}
+
+.player-page .player-progress strong {
+  margin-top: 1px;
+  font-size: 1.15rem;
+}
+
+.player-page .ticket-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  padding: 10px;
+}
+
+.player-page .ticket-heading {
+  margin-bottom: 4px;
+}
+
+.player-page .ticket-heading h2 {
+  font-size: 1rem;
+}
+
+.player-page .bingo {
+  align-self: center;
+  width: min(100%, 50vh);
+  max-height: 100%;
+  margin: 3px auto 5px;
+}
+
+.player-page .bingo.card-90 {
+  width: min(100%, 72vh);
+}
+
+.player-page .bingo-headers,
+.player-page .card {
+  gap: 4px;
+}
+
+.player-page .bingo-headers {
+  margin-bottom: 4px;
+}
+
+.player-page .header {
+  min-height: 32px;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+}
+
+.player-page .number {
+  border-width: 2px;
+  border-radius: 8px;
+  font-size: clamp(.82rem, 2vw, 1.15rem);
+}
+
+.player-page .card.card-90-grid {
+  gap: 4px;
+}
+
+.player-page .card.card-90-grid .number {
+  aspect-ratio: 1.25;
+  font-size: clamp(.72rem, 1.8vw, 1rem);
+}
+
+.player-page .player-actions {
+  margin-top: 2px;
+}
+
+.player-page .claim-button {
+  min-height: 38px;
+  min-width: 190px;
+  padding: 7px 15px;
+  font-size: .9rem;
+}
+
+.player-page .centered-help {
+  margin-top: 3px;
+  font-size: .7rem;
+  line-height: 1.2;
+}
+
+/* Mobile host uses in-place views instead of page scrolling. */
+@media (max-width: 760px) {
+  .host-page .host-shell,
+  .player-page .player-shell {
+    width: calc(100% - 10px);
+    height: calc(100dvh - 10px);
+    max-height: calc(100dvh - 10px);
+    margin: 5px auto;
+  }
+
+  .host-page .host-shell {
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .host-page .app-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 7px;
+    padding: 2px;
+  }
+
+  .host-page .app-header .eyebrow {
+    display: none;
+  }
+
+  .host-page .app-header h1 {
+    font-size: 1.35rem;
+  }
+
+  .host-page .status-pill {
+    min-height: 30px;
+    max-width: 46vw;
+    padding: 4px 8px;
+    font-size: .67rem;
+  }
+
+  .host-page .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(66px, 1fr));
+    gap: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+  }
+
+  .host-page .stat-card {
+    min-width: 66px;
+    padding: 6px 7px;
+    border-radius: 11px;
+  }
+
+  .host-page .stat-label {
+    font-size: .52rem;
+    letter-spacing: .03em;
+  }
+
+  .host-page .stat-value,
+  .host-page .stat-time,
+  .host-page .stat-stage {
+    font-size: .86rem;
+  }
+
+  .host-mobile-nav {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+
+  .host-nav-button {
+    min-height: 34px;
+    padding: 5px 6px;
+    border-radius: 10px;
+    box-shadow: none;
+    background: rgba(255,255,255,.06);
+    font-size: .7rem;
+  }
+
+  .host-nav-button.active {
+    background: linear-gradient(135deg, #2762dc, #169fcd);
+    border-color: rgba(117,220,255,.35);
+  }
+
+  .host-page .host-dashboard {
+    display: block;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .host-page .host-dashboard > .panel,
+  .host-page .history-panel {
+    display: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+  }
+
+  .host-page .host-shell[data-host-view="control"] .hero-panel,
+  .host-page .host-shell[data-host-view="control"] .mode-panel,
+  .host-page .host-shell[data-host-view="control"] .controls-panel {
+    display: flex;
+  }
+
+  .host-page .host-shell[data-host-view="control"] .hero-panel {
+    height: 43%;
+    flex-direction: column;
+  }
+
+  .host-page .host-shell[data-host-view="control"] .mode-panel {
+    height: 22%;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 4px;
+  }
+
+  .host-page .host-shell[data-host-view="control"] .controls-panel {
+    height: calc(35% - 8px);
+    flex-direction: column;
+    margin-top: 4px;
+  }
+
+  .host-page .hero-panel .panel-heading,
+  .host-page .mode-panel .panel-heading,
+  .host-page .controls-panel .panel-heading {
+    display: none;
+  }
+
+  .host-page .current-number {
+    width: min(15vh, 112px);
+    margin: auto;
+    font-size: clamp(1.75rem, 6vh, 2.7rem);
+  }
+
+  .host-page .last-call-strip {
+    margin-top: 2px;
+    padding-top: 3px;
+  }
+
+  .host-page .last-call-strip > span {
+    display: none;
+  }
+
+  .host-page .mode-select {
+    min-height: 34px;
+    padding: 5px 7px;
+    font-size: .72rem;
+  }
+
+  .host-page .mode-panel .helper-text {
+    margin-top: 3px;
+    font-size: .6rem;
+  }
+
+  .host-page .host-buttons {
+    grid-template-columns: repeat(2, 1fr);
+    height: 100%;
+  }
+
+  .host-page .host-buttons button {
+    min-height: 0;
+    height: 100%;
+    padding: 4px;
+    font-size: .66rem;
+  }
+
+  .host-page .host-shell[data-host-view="players"] .players-panel {
+    display: flex;
+  }
+
+  .host-page .players-panel {
+    height: 100%;
+    padding: 10px;
+  }
+
+  .host-page .player-list {
+    max-height: none;
+  }
+
+  .host-page .host-shell[data-host-view="history"] .history-panel {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .host-page .history-panel .all-calls {
+    flex: 1;
+    max-height: none;
+    min-height: 0;
+    overflow: auto;
+    align-content: flex-start;
+  }
+
+  /* Player mobile: current call becomes a compact strip above the ticket. */
+  .player-page .player-shell {
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .player-page .player-header {
+    padding: 1px 2px 3px;
+    align-items: center;
+  }
+
+  .player-page .player-header .eyebrow {
+    display: none;
+  }
+
+  .player-page .player-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .player-page .welcome-player {
+    margin: 0;
+    font-size: .72rem;
+  }
+
+  .player-page .stage-badge {
+    padding: 5px 7px;
+    font-size: .63rem;
+  }
+
+  .player-page .icon-link {
+    width: 31px;
+    height: 31px;
+    border-radius: 9px;
+    font-size: 1rem;
+  }
+
+  .player-page .full-status {
+    min-height: 28px;
+    padding: 4px 7px;
+    font-size: .67rem;
+  }
+
+  .player-page .player-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .player-page .current-call-card {
+    display: grid;
+    grid-template-columns: auto auto 1fr auto;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 8px;
+    text-align: left;
+  }
+
+  .player-page .current-call-card > .panel-kicker {
+    display: none;
+  }
+
+  .player-page .player-current-number {
+    width: 58px;
+    height: 58px;
+    aspect-ratio: 1;
+    margin: 0;
+    border-width: 3px;
+    font-size: 1.55rem;
+  }
+
+  .player-page .target-instruction {
+    margin: 0;
+    font-size: .67rem;
+    line-height: 1.15;
+  }
+
+  .player-page .player-progress {
+    display: flex;
+    gap: 4px;
+    margin: 0;
+  }
+
+  .player-page .player-progress > div {
+    min-width: 52px;
+    padding: 4px 5px;
+  }
+
+  .player-page .progress-label {
+    font-size: .48rem;
+  }
+
+  .player-page .player-progress strong {
+    font-size: .85rem;
+  }
+
+  .player-page .ticket-panel {
+    min-height: 0;
+    height: 100%;
+    padding: 5px;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .player-page .ticket-heading {
+    margin: 0 0 2px;
+  }
+
+  .player-page .ticket-heading .panel-kicker,
+  .player-page .ticket-heading .legend,
+  .player-page .ticket-panel > .centered-help {
+    display: none;
+  }
+
+  .player-page .ticket-heading h2 {
+    margin: 0;
+    font-size: .82rem;
+  }
+
+  .player-page .bingo {
+    width: min(100%, 48vh);
+    margin: 1px auto 3px;
+  }
+
+  .player-page .bingo.card-90 {
+    width: min(100%, 74vh);
+  }
+
+  .player-page .bingo-headers,
+  .player-page .card {
+    gap: 2px;
+  }
+
+  .player-page .bingo-headers {
+    margin-bottom: 2px;
+  }
+
+  .player-page .header {
+    min-height: 24px;
+    border-radius: 6px;
+    font-size: .78rem;
+  }
+
+  .player-page .number {
+    border-width: 1px;
+    border-radius: 6px;
+    font-size: clamp(.72rem, 3.4vw, .95rem);
+  }
+
+  .player-page .card.card-90-grid {
+    gap: 2px;
+  }
+
+  .player-page .card.card-90-grid .number {
+    aspect-ratio: 1.42;
+    border-radius: 5px;
+    font-size: clamp(.62rem, 2.8vw, .88rem);
+  }
+
+  .player-page .player-actions {
+    margin: 0;
+  }
+
+  .player-page .claim-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 34px;
+    margin: 0;
+    padding: 5px 10px;
+    font-size: .78rem;
+  }
+}
+
+/* Short laptop/tablet screens need tighter vertical spacing too. */
+@media (min-width: 761px) and (max-height: 760px) {
+  .host-page .host-shell,
+  .player-page .player-shell {
+    width: calc(100% - 14px);
+    height: calc(100dvh - 10px);
+    max-height: calc(100dvh - 10px);
+    margin: 5px auto;
+  }
+
+  .host-page .stats-grid { gap: 5px; }
+  .host-page .stat-card { padding: 7px 9px; }
+  .host-page .hero-panel { min-height: 0; }
+  .host-page .current-number { width: min(17vh, 120px); }
+  .host-page .history-panel { max-height: 86px; }
+  .host-page .all-calls { max-height: 39px; }
+
+  .player-page .player-current-number {
+    width: min(17vh, 125px);
+  }
+
+  .player-page .bingo {
+    width: min(100%, 45vh);
+  }
+
+  .player-page .bingo.card-90 {
+    width: min(100%, 65vh);
+  }
+
+  .player-page .centered-help {
+    display: none;
+  }
+}

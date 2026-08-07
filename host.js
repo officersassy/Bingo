@@ -252,3 +252,15 @@ els.winnerRestart.addEventListener("click",resetGame);
 els.closeWinner.addEventListener("click",()=>els.popup.classList.remove("show"));
 setInterval(updateStatistics,1000);
 initialise().catch((error)=>{console.error(error);els.status.textContent="Firebase connection failed.";});
+
+
+// Responsive host navigation: page stays fixed while mobile sections switch in-place.
+const hostShell = document.querySelector(".host-shell");
+const hostNavButtons = document.querySelectorAll("[data-host-view]");
+function setHostView(view) {
+  if (!hostShell) return;
+  hostShell.dataset.hostView = view;
+  hostNavButtons.forEach((button) => button.classList.toggle("active", button.dataset.hostView === view));
+}
+hostNavButtons.forEach((button) => button.addEventListener("click", () => setHostView(button.dataset.hostView)));
+setHostView("control");
