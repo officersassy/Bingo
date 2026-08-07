@@ -1174,3 +1174,53 @@ button.mini { min-height: 31px; padding: 5px 10px; border-radius: 9px; font-size
     display: none;
   }
 }
+
+
+/* ======================================
+   PLAYER CURRENT BALL — CENTRE FIX
+   Keeps 75-ball calls (e.g. G 52) and
+   90-ball calls (e.g. 88) perfectly centred.
+====================================== */
+
+.player-container #playerCurrent {
+    display: grid !important;
+    place-items: center !important;
+    text-align: center !important;
+
+    padding: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+
+    line-height: 1 !important;
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+
+    font-variant-numeric: tabular-nums;
+}
+
+.player-container #playerCurrent > * {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+@media (max-width: 760px) {
+    .player-container #playerCurrent {
+        display: grid !important;
+        place-items: center !important;
+        text-align: center !important;
+        line-height: 1 !important;
+        padding: 0 !important;
+    }
+}
+
+@media (max-height: 700px) {
+    .player-container #playerCurrent {
+        display: grid !important;
+        place-items: center !important;
+        text-align: center !important;
+        line-height: 1 !important;
+        padding: 0 !important;
+    }
+}
+
