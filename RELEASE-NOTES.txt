@@ -1,0 +1,28 @@
+FINAL MULTI-WINNER RELEASE
+
+Checked features:
+- 75-ball One Line / Two Lines / Four Corners
+- 90-ball Progressive / Full House
+- Progressive One Line -> Two Lines -> Full House
+- Multiple winners per stage
+- 5-second tie-claim collection window before Progressive can continue
+- First claim freezes number calling
+- Other already-valid players can still submit tied claims
+- Stage claims clear when host continues Progressive
+- Force Restart clears claims/calls/dabs and issues fresh matching cards
+- Player removal
+- Statistics
+- Confetti
+- Player current-number centring fix
+- No-page-scroll responsive layout
+
+Before the event:
+1. Upload ALL files.
+2. Hard refresh: Ctrl+Shift+R.
+3. Open Host and use Force Restart once.
+
+Validation performed:
+- JavaScript syntax checks
+- HTML/JavaScript ID matching
+- Old single-winner code removed
+- 100,000 generated 90-ball tickets structurally validated

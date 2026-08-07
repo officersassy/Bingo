@@ -5,7 +5,7 @@ const bingoRef = ref(database, "bingo");
 const playersRef = ref(database, "bingo/players");
 const currentRef = ref(database, "bingo/currentCall");
 const callsRef = ref(database, "bingo/calledNumbers");
-const winnerRef = ref(database, "bingo/winner");
+const claimsRef = ref(database, "bingo/claims");
 const BLANK = "__BLANK__";
 
 const els = {
@@ -23,11 +23,13 @@ const els = {
   statStage: document.getElementById("statStage"), historySummary: document.getElementById("historySummary")
 };
 
-let state = { status: "joining", joiningOpen: true, locked: false, gameMode: "progressive", progressiveStage: "one-line" };
+let state = { gameId: null, status: "joining", joiningOpen: true, locked: false, gameMode: "progressive", progressiveStage: "one-line" };
 let calledNumbers = [];
 let callTimes = [];
-let currentWinner = null;
+let currentClaims = [];
 let startedAt = null;
+let tieWindowTimer = null;
+const TIE_WINDOW_MS = 5000;
 
 function randomNumbers(min, max, count) {
   const out = [];
@@ -164,7 +166,7 @@ async function rebuildPlayersForMode(mode) {
 
 onValue(bingoRef,(snap)=>{
   const game=snap.val()||{};
-  state={status:game.status||"joining",joiningOpen:game.joiningOpen!==false,locked:Boolean(game.locked),gameMode:game.gameMode||"progressive",progressiveStage:game.progressiveStage||"one-line"};
+  state={gameId:game.gameId||null,status:game.status||"joining",joiningOpen:game.joiningOpen!==false,locked:Boolean(game.locked),gameMode:game.gameMode||"progressive",progressiveStage:game.progressiveStage||"one-line"};
   const target=stageName(activeTarget());
   if (state.status==="playing") els.status.textContent=`${modeName(state.gameMode)} — playing for ${target}`;
   else if (state.status==="stage-winner") els.status.textContent=`${target} winner announced — continue when ready`;
@@ -201,14 +203,52 @@ onValue(callsRef,(snap)=>{
   draw(els.last,newest.slice(0,10)); draw(els.all,newest); updateControls(); updateStatistics();
 });
 
-onValue(winnerRef,(snap)=>{
-  if (!snap.exists()) { currentWinner=null; els.popup.classList.remove("show"); return; }
-  currentWinner=snap.val(); const wonStage=currentWinner.stage||currentWinner.gameMode||activeTarget();
-  els.winnerName.textContent=`${currentWinner.name||"A player"} has won ${stageName(wonStage)}!`;
-  const progressiveNotFinished=state.gameMode==="progressive"&&wonStage!=="full-house";
+onValue(claimsRef,(snap)=>{
+  const claimsTree=snap.val()||{};
+  const stage=activeTarget();
+  const stageClaims=claimsTree[stage]||{};
+  currentClaims=Object.values(stageClaims)
+    .filter((claim)=>!claim.gameId||!state.gameId||claim.gameId===state.gameId)
+    .sort((a,b)=>Number(a.claimedAt||0)-Number(b.claimedAt||0));
+
+  if(!currentClaims.length){
+    els.popup.classList.remove("show");
+    els.winnerName.textContent="We have a winner!";
+    return;
+  }
+
+  const names=currentClaims.map((claim)=>claim.name||"Player");
+  els.winnerName.innerHTML=
+    `${stageName(stage)} Winner${names.length>1?"s":""}!<br><br>`+
+    names.map((name)=>`🏆 ${name}`).join("<br>");
+
+  const progressiveNotFinished=state.gameMode==="progressive"&&stage!=="full-house";
   els.winnerContinue.style.display=progressiveNotFinished?"inline-flex":"none";
-  els.winnerContinue.textContent=wonStage==="one-line"?"Continue to Two Lines":"Continue to Full House";
   els.popup.classList.add("show");
+
+  if(tieWindowTimer){
+    clearTimeout(tieWindowTimer);
+    tieWindowTimer=null;
+  }
+
+  if(progressiveNotFinished){
+    const earliestClaim=Math.min(...currentClaims.map((claim)=>Number(claim.claimedAt||Date.now())));
+    const remaining=Math.max(0,TIE_WINDOW_MS-(Date.now()-earliestClaim));
+
+    if(remaining>0){
+      els.winnerContinue.disabled=true;
+      els.winnerContinue.textContent="Collecting tied claims…";
+
+      tieWindowTimer=setTimeout(()=>{
+        els.winnerContinue.disabled=false;
+        els.winnerContinue.textContent=stage==="one-line"?"Continue to Two Lines":"Continue to Full House";
+        tieWindowTimer=null;
+      },remaining);
+    }else{
+      els.winnerContinue.disabled=false;
+      els.winnerContinue.textContent=stage==="one-line"?"Continue to Two Lines":"Continue to Full House";
+    }
+  }
 });
 
 els.mode.addEventListener("change",async()=>{
@@ -236,10 +276,25 @@ els.call.addEventListener("click",async()=>{
 });
 
 async function continueProgressiveGame(){
-  if(!currentWinner||state.gameMode!=="progressive")return;
-  const wonStage=currentWinner.stage||state.progressiveStage;
+  if(!currentClaims.length||state.gameMode!=="progressive")return;
+
+  const earliestClaim=Math.min(...currentClaims.map((claim)=>Number(claim.claimedAt||Date.now())));
+  if(Date.now()-earliestClaim<TIE_WINDOW_MS)return;
+
+  const wonStage=state.progressiveStage;
+  if(wonStage==="full-house")return;
+
   const nextStage=wonStage==="one-line"?"two-lines":"full-house";
-  await remove(winnerRef); await update(bingoRef,{status:"playing",locked:false,progressiveStage:nextStage,stageStartedAt:Date.now()}); els.popup.classList.remove("show");
+
+  if(tieWindowTimer){
+    clearTimeout(tieWindowTimer);
+    tieWindowTimer=null;
+  }
+
+  await remove(ref(database,`bingo/claims/${wonStage}`));
+  await update(bingoRef,{status:"playing",locked:false,progressiveStage:nextStage,stageStartedAt:Date.now()});
+  currentClaims=[];
+  els.popup.classList.remove("show");
 }
 async function resetGame(){
   if(!confirm("Restart the game? Every player gets a fresh matching card and all dabs/calls are cleared."))return;

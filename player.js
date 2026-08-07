@@ -106,16 +106,54 @@ function validWin(){ const target=activeTarget(); return cardType==="90"?validWi
 
 els.bingo.addEventListener("click",async()=>{
   const target=activeTarget();
-  if(!player||state.status!=="playing"||state.locked){show("The game is not ready for a Bingo claim.","warning");return;}
-  if(!validWin()){show(`That is not a valid ${stageName(target)} yet.`,"error");return;}
+  const claimableStatuses=["playing","stage-winner","winner"];
+
+  if(!player||!claimableStatuses.includes(state.status)){
+    show("The game is not ready for a Bingo claim.","warning");
+    return;
+  }
+
+  if(!validWin()){
+    show(`That is not a valid ${stageName(target)} yet.`,"error");
+    return;
+  }
+
   els.bingo.disabled=true;
   try{
-    const winnerSnap=await get(ref(database,"bingo/winner"));
-    if(winnerSnap.exists()){show("A winner has already been submitted for this stage.","warning");return;}
+    const claimRef=ref(database,`bingo/claims/${target}/${playerId}`);
+    const existing=await get(claimRef);
+
+    if(existing.exists()){
+      show("Your Bingo claim is already registered.","warning");
+      return;
+    }
+
+    await set(claimRef,{
+      playerId,
+      name:player.name||playerId,
+      card,
+      cardType,
+      marked,
+      gameId,
+      gameMode:state.gameMode,
+      stage:target,
+      claimedAt:Date.now(),
+      verified:true
+    });
+
     const isFinal=state.gameMode!=="progressive"||target==="full-house";
-    await set(ref(database,"bingo/winner"),{playerId,name:player.name||playerId,card,cardType,marked,gameId,gameMode:state.gameMode,stage:target,claimedAt:Date.now(),verified:true});
-    await update(ref(database,"bingo"),{status:isFinal?"winner":"stage-winner",locked:true});
-  }finally{els.bingo.disabled=false;}
+    await update(ref(database,"bingo"),{
+      status:isFinal?"winner":"stage-winner",
+      locked:true
+    });
+
+    show(`${stageName(target)} claim registered!`,"success");
+  }catch(error){
+    console.error(error);
+    show("Your Bingo claim could not be submitted.","error");
+  }finally{
+    els.bingo.disabled=false;
+  }
 });
 
 onValue(ref(database,`bingo/players/${playerId||"missing"}`),(snap)=>{
@@ -140,10 +178,31 @@ onValue(ref(database,"bingo"),(snap)=>{
   else if(state.status==="winner")show(`Final ${target} winner announced.`,"warning");
   else show(`Waiting for host — ${is90Mode(state.gameMode)?"90-ball":"75-ball"} ${state.gameMode==="progressive"?"Progressive Game":target}.`);
 });
-onValue(ref(database,"bingo/winner"),(snap)=>{
-  if(!snap.exists()){els.popup.classList.remove("show");lastWinnerKey=null;return;}
-  const winner=snap.val(),wonStage=winner.stage||activeTarget(); els.winnerName.textContent=`${winner.name||"A player"} has won ${stageName(wonStage)}!`; els.popup.classList.add("show");
-  const key=`${winner.claimedAt||0}-${wonStage}`; if(key!==lastWinnerKey){lastWinnerKey=key;fireConfetti();}
+onValue(ref(database,"bingo/claims"),(snap)=>{
+  const claimsTree=snap.val()||{};
+  const stage=activeTarget();
+  const stageClaims=claimsTree[stage]||{};
+  const claims=Object.values(stageClaims)
+    .filter((claim)=>!claim.gameId||!gameId||claim.gameId===gameId)
+    .sort((a,b)=>Number(a.claimedAt||0)-Number(b.claimedAt||0));
+
+  if(!claims.length){
+    els.popup.classList.remove("show");
+    lastWinnerKey=null;
+    return;
+  }
+
+  const names=claims.map((claim)=>claim.name||"Player");
+  els.winnerName.innerHTML=
+    `${stageName(stage)} Winner${names.length>1?"s":""}!<br><br>`+
+    names.map((name)=>`🏆 ${name}`).join("<br>");
+  els.popup.classList.add("show");
+
+  const key=`${gameId||"game"}-${stage}`;
+  if(key!==lastWinnerKey){
+    lastWinnerKey=key;
+    fireConfetti();
+  }
 });
 els.closeWinner.addEventListener("click",()=>els.popup.classList.remove("show"));
 
